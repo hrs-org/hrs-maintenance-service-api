@@ -1,5 +1,6 @@
 using HRS.API.Contracts.DTOs;
 using HRS.API.Contracts.DTOs.Health;
+using HRS.Shared.Core.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRS.API.Controllers;

@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentValidation;
 using HRS.API.Common;
 using HRS.API.Contracts.DTOs;
+using HRS.Shared.Core.Dtos;
 
 namespace HRS.API.Middleware;
 

@@ -6,34 +6,29 @@ using HRS.API.Services;
 using HRS.API.Services.Interfaces;
 using HRS.API.Validators.Maintenance;
 using HRS.Domain.Interfaces;
-using HRS.Infrastructure;
 using HRS.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
 
-builder.Services.AddScoped(typeof(ICrudRepository<>), typeof(CrudRepository<>));
-builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
+// 注入MongoDB版本的仓储
+builder.Services.AddScoped(typeof(ICrudRepository<>), typeof(MongoCrudRepository<>));
+builder.Services.AddScoped<IItemMaintenanceRepository, MongoItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 
 builder.Services.AddValidatorsFromAssemblyContaining<ItemMaintenanceRequestDtoValidator>();
-
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "HRS API", Version = "v1" });
-
-    // 🔑 Enable JWT Bearer in Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -43,7 +38,6 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter 'Bearer' followed by your JWT token.\n\nExample: **Bearer eyJhbGciOi...**"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -60,11 +54,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString,
-        ServerVersion.AutoDetect(connectionString)));
+// MongoDB 注入
+var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDbConnection");
+var mongoDatabaseName = builder.Configuration["MongoDb:DatabaseName"];
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
@@ -99,7 +93,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseSwagger();
 if (app.Environment.IsDevelopment()) app.UseSwaggerUI();
 

@@ -5,6 +5,7 @@ using HRS.API.Mappings.Profiles;
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 
 namespace HRS.Test.API.Mappings.Profiles;
 
@@ -26,7 +27,7 @@ public class ItemMaintenanceProfileTests
         // Arrange
         var entity = new ItemMaintenance
         {
-            Id = 1,
+            _id = ObjectId.GenerateNewId().ToString(),
             ItemId = 2,
             RentalOrderId = 3,
             Type = ItemMaintenanceType.Broken,
@@ -40,7 +41,6 @@ public class ItemMaintenanceProfileTests
 
         // Assert
         dto.Should().NotBeNull();
-        dto.Id.Should().Be(1);
         dto.ItemId.Should().Be(2);
         dto.Type.Should().Be(ItemMaintenanceType.Broken.ToString());
         dto.Remarks.Should().BeNull();

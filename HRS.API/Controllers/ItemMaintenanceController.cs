@@ -1,6 +1,7 @@
 using HRS.API.Contracts.DTOs;
 using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Services.Interfaces;
+using HRS.Shared.Core.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

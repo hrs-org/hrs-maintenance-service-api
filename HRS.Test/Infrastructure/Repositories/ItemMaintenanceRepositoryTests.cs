@@ -1,36 +1,35 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
-using HRS.Infrastructure;
 using HRS.Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using Xunit;
 
 namespace HRS.Test.Infrastructure.Repositories;
 
 public class ItemMaintenanceRepositoryTests
 {
-    private static AppDbContext CreateDbContext(string dbName)
+    private static IMongoDatabase CreateTestDatabase()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(dbName)
-            .Options;
-        return new AppDbContext(options);
+        var client = new MongoClient("mongodb://localhost:27017"); // 可根据实际测试环境调整
+        var dbName = $"ItemMaintenanceRepoTest_{Guid.NewGuid()}";
+        return client.GetDatabase(dbName);
     }
 
     [Fact]
     public async Task GetRepairingQuantityAsync_ReturnsCorrectSum()
     {
         // Arrange
-        var dbName = $"ItemMaintenanceRepo_{Guid.NewGuid()}";
-        using var dbContext = CreateDbContext(dbName);
-        var repo = new ItemMaintenanceRepository(dbContext);
+        var database = CreateTestDatabase();
+        var repo = new MongoItemMaintenanceRepository(database);
         var itemId = 1;
-        dbContext.ItemMaintenances.AddRange(
-            new ItemMaintenance { Id = 1, ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 5, QuantityFixed = 2 }, // 5-2=3
-            new ItemMaintenance { Id = 2, ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 4, QuantityFixed = null }, // 4-0=4
-            new ItemMaintenance { Id = 3, ItemId = itemId, Type = ItemMaintenanceType.Broken, Quantity = 10, QuantityFixed = null }, // not counted
-            new ItemMaintenance { Id = 4, ItemId = 2, Type = ItemMaintenanceType.Repair, Quantity = 7, QuantityFixed = 1 } // not counted
-        );
-        await dbContext.SaveChangesAsync();
+        var maintenances = new[]
+        {
+            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 5, QuantityFixed = 2 }, // 5-2=3
+            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 4, QuantityFixed = null }, // 4-0=4
+            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Broken, Quantity = 10, QuantityFixed = null }, // not counted
+            new ItemMaintenance { ItemId = 2, Type = ItemMaintenanceType.Repair, Quantity = 7, QuantityFixed = 1 } // not counted
+        };
+        await database.GetCollection<ItemMaintenance>("ItemMaintenances").InsertManyAsync(maintenances);
 
         // Act
         var repairing = await repo.GetRepairingQuantityAsync(itemId);
@@ -43,9 +42,8 @@ public class ItemMaintenanceRepositoryTests
     public async Task GetRepairingQuantityAsync_ReturnsZeroIfNoneFound()
     {
         // Arrange
-        var dbName = $"ItemMaintenanceRepo_Zero_{Guid.NewGuid()}";
-        using var dbContext = CreateDbContext(dbName);
-        var repo = new ItemMaintenanceRepository(dbContext);
+        var database = CreateTestDatabase();
+        var repo = new MongoItemMaintenanceRepository(database);
 
         // Act
         var repairing = await repo.GetRepairingQuantityAsync(99);

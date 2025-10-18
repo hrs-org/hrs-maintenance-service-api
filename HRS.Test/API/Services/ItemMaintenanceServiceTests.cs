@@ -8,6 +8,7 @@ using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
+using MongoDB.Bson;
 
 namespace HRS.Test.API.Services;
 
@@ -39,10 +40,10 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task GetAsync_WhenRecordExists_ReturnsMappedDto()
     {
-        var record = new ItemMaintenance { Id = 1, Type = ItemMaintenanceType.Repair, Quantity = 2 };
+        var record = new ItemMaintenance { _id = ObjectId.GenerateNewId().ToString(), Type = ItemMaintenanceType.Repair, Quantity = 2 };
         var dto = new ItemMaintenanceResponseDto { Id = 1 };
 
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(record._id)
             .Returns(Task.FromResult<ItemMaintenance?>(record));
         _mapper.Map<ItemMaintenanceResponseDto>(record).Returns(dto);
 
@@ -54,7 +55,7 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task GetAsync_WhenRecordNotFound_ThrowsKeyNotFoundException()
     {
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(Arg.Any<object>())
             .Returns(Task.FromResult<ItemMaintenance?>(null));
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAsync(1));
@@ -63,7 +64,7 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task GetAllAsync_ReturnsMappedDtos()
     {
-        var records = new List<ItemMaintenance> { new() { Id = 1 }, new() { Id = 2 } };
+        var records = new List<ItemMaintenance> { new() { _id = ObjectId.GenerateNewId().ToString() }, new() { _id = ObjectId.GenerateNewId().ToString() } };
         var dtos = new List<ItemMaintenanceResponseDto> { new() { Id = 1 }, new() { Id = 2 } };
 
         _itemMaintenanceRepository.GetAllAsync()
@@ -78,11 +79,11 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenValid_UpdatesRecordAndReturnsDto()
     {
-        var record = new ItemMaintenance { Id = 1, Type = ItemMaintenanceType.Repair, Quantity = 5 };
+        var record = new ItemMaintenance { _id = ObjectId.GenerateNewId().ToString(), Type = ItemMaintenanceType.Repair, Quantity = 5 };
         var request = new ItemMaintenanceRequestDto { Id = 1, QuantityFixed = 3, Remarks = "Fixed" };
         var dto = new ItemMaintenanceResponseDto { Id = 1 };
 
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(Arg.Any<object>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));
         _mapper.Map<ItemMaintenanceResponseDto>(record).Returns(dto);
 
@@ -101,7 +102,7 @@ public class ItemMaintenanceServiceTests
     {
         var request = new ItemMaintenanceRequestDto { Id = 1, QuantityFixed = 1 };
 
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(Arg.Any<object>())
             .Returns(Task.FromResult<ItemMaintenance?>(null));
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.MarkAsFixedAsync(request));
@@ -110,10 +111,10 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenTypeNotRepair_ThrowsInvalidOperationException()
     {
-        var record = new ItemMaintenance { Id = 1, Type = ItemMaintenanceType.Fixed, Quantity = 5 };
+        var record = new ItemMaintenance { _id = ObjectId.GenerateNewId().ToString(), Type = ItemMaintenanceType.Fixed, Quantity = 5 };
         var request = new ItemMaintenanceRequestDto { Id = 1, QuantityFixed = 1 };
 
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(Arg.Any<object>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _service.MarkAsFixedAsync(request));
@@ -124,10 +125,10 @@ public class ItemMaintenanceServiceTests
     [InlineData(-1)]
     public async Task MarkAsFixedAsync_WhenQuantityInvalid_ThrowsArgumentException(int quantityFixed)
     {
-        var record = new ItemMaintenance { Id = 1, Type = ItemMaintenanceType.Repair, Quantity = 5 };
+        var record = new ItemMaintenance { _id = ObjectId.GenerateNewId().ToString(), Type = ItemMaintenanceType.Repair, Quantity = 5 };
         var request = new ItemMaintenanceRequestDto { Id = 1, QuantityFixed = quantityFixed };
 
-        _itemMaintenanceRepository.GetByIdAsync(1)
+        _itemMaintenanceRepository.GetByIdAsync(Arg.Any<object>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));
 
         await Assert.ThrowsAsync<ArgumentException>(() => _service.MarkAsFixedAsync(request));
