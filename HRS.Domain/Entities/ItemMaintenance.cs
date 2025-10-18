@@ -9,11 +9,8 @@ public class ItemMaintenance
 {
     [Key] public int Id { get; set; }
 
-    [Required] public int ItemId { get; set; }
-    [ForeignKey(nameof(ItemId))] public Item Item { get; set; } = null!;
-
-    public int? RentalOrderId { get; set; }
-    [ForeignKey(nameof(RentalOrderId))] public RentalOrder? RentalOrder { get; set; }
+    [Required] public int ItemId { get; set; }    
+    public int? RentalOrderId { get; set; }       
 
     [Required] public ItemMaintenanceType Type { get; set; } = ItemMaintenanceType.Repair;
 
@@ -23,14 +20,8 @@ public class ItemMaintenance
     [MaxLength(250)] public string? Remarks { get; set; }
 
     public int CreatedById { get; set; }
-
-    [ForeignKey(nameof(CreatedById))] public User? CreatedBy { get; set; }
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int? UpdatedById { get; set; }
-
-    [ForeignKey(nameof(UpdatedById))] public User? UpdatedBy { get; set; }
-
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

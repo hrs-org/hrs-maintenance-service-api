@@ -4,12 +4,7 @@ using HRS.API.Filters;
 using HRS.API.Middleware;
 using HRS.API.Services;
 using HRS.API.Services.Interfaces;
-using HRS.API.Validators.Auth;
-using HRS.API.Validators.Item;
 using HRS.API.Validators.Maintenance;
-using HRS.API.Validators.Payment;
-using HRS.API.Validators.Rental;
-using HRS.API.Validators.User;
 using HRS.Domain.Interfaces;
 using HRS.Infrastructure;
 using HRS.Infrastructure.Repositories;
@@ -20,51 +15,16 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserContextService, UserContextService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IEmailBuilderService, EmailBuilderService>();
-builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
-builder.Services.AddScoped<IUserVerificationService, UserVerificationService>();
-builder.Services.AddScoped<IUserSessionService, UserSessionService>();
-builder.Services.AddScoped<IItemService, ItemService>();
-builder.Services.AddScoped<IPackageService, PackageService>();
-builder.Services.AddScoped<IRentalOrderService, RentalOrderService>();
-builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
-builder.Services.AddScoped<ICatalogService, CatalogService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddScoped(typeof(ICrudRepository<>), typeof(CrudRepository<>));
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
-builder.Services.AddScoped<IUserVerificationRepository, UserVerificationRepository>();
-builder.Services.AddScoped<IItemRepository, ItemRepository>();
-builder.Services.AddScoped<IItemRateRepository, ItemRateRepository>();
-builder.Services.AddScoped<IPackageRepository, PackageRepository>();
-builder.Services.AddScoped<IPackageRateRepository, PackageRateRepository>();
-builder.Services.AddScoped<IRentalOrderRepository, RentalOrderRepository>();
-builder.Services.AddScoped<IRentalOrderItemRepository, RentalOrderItemRepository>();
-builder.Services.AddScoped<IRentalOrderPackageItemRepository, RentalOrderPackageItemRepository>();
 builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IAppConfiguration, AppConfiguration>();
 builder.Services.AddHttpContextAccessor();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 
-builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<AddItemRequestDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateItemRequestDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterEmployeeDetailDtoValidators>();
-builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<RentalOrderRequestValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<ReturnRentalOrderRequestValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<PaymentRequestDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<VerifyPaymentRequestDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<ItemMaintenanceRequestDtoValidator>();
 
 
@@ -104,8 +64,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString,
-        ServerVersion.AutoDetect(connectionString),
-        b => b.MigrationsAssembly("HRS.Migrations")));
+        ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
