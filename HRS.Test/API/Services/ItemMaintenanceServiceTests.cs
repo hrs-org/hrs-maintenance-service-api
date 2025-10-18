@@ -43,7 +43,7 @@ public class ItemMaintenanceServiceTests
         var record = new ItemMaintenance { _id = ObjectId.GenerateNewId().ToString(), Type = ItemMaintenanceType.Repair, Quantity = 2 };
         var dto = new ItemMaintenanceResponseDto { Id = 1 };
 
-        _itemMaintenanceRepository.GetByIdAsync(record._id)
+        _itemMaintenanceRepository.GetByIdAsync(1)
             .Returns(Task.FromResult<ItemMaintenance?>(record));
         _mapper.Map<ItemMaintenanceResponseDto>(record).Returns(dto);
 

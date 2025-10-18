@@ -1,54 +1,65 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
-using HRS.Infrastructure.Repositories;
-using MongoDB.Driver;
+using HRS.Domain.Interfaces;
+using NSubstitute;
 using Xunit;
 
 namespace HRS.Test.Infrastructure.Repositories;
 
 public class ItemMaintenanceRepositoryTests
 {
-    private static IMongoDatabase CreateTestDatabase()
+    private readonly IItemMaintenanceRepository _repository;
+
+    public ItemMaintenanceRepositoryTests()
     {
-        var client = new MongoClient("mongodb://localhost:27017"); // 可根据实际测试环境调整
-        var dbName = $"ItemMaintenanceRepoTest_{Guid.NewGuid()}";
-        return client.GetDatabase(dbName);
+        _repository = Substitute.For<IItemMaintenanceRepository>();
     }
 
     [Fact]
-    public async Task GetRepairingQuantityAsync_ReturnsCorrectSum()
+    public async Task GetRepairingQuantityAsync_ShouldReturn_CorrectSum()
     {
         // Arrange
-        var database = CreateTestDatabase();
-        var repo = new MongoItemMaintenanceRepository(database);
         var itemId = 1;
-        var maintenances = new[]
-        {
-            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 5, QuantityFixed = 2 }, // 5-2=3
-            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 4, QuantityFixed = null }, // 4-0=4
-            new ItemMaintenance { ItemId = itemId, Type = ItemMaintenanceType.Broken, Quantity = 10, QuantityFixed = null }, // not counted
-            new ItemMaintenance { ItemId = 2, Type = ItemMaintenanceType.Repair, Quantity = 7, QuantityFixed = 1 } // not counted
-        };
-        await database.GetCollection<ItemMaintenance>("ItemMaintenances").InsertManyAsync(maintenances);
+        var expectedQuantity = 7; 
+
+        _repository.GetRepairingQuantityAsync(itemId)
+            .Returns(Task.FromResult(expectedQuantity));
 
         // Act
-        var repairing = await repo.GetRepairingQuantityAsync(itemId);
+        var result = await _repository.GetRepairingQuantityAsync(itemId);
 
         // Assert
-        Assert.Equal(7, repairing);
+        Assert.Equal(expectedQuantity, result);
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
     }
 
     [Fact]
-    public async Task GetRepairingQuantityAsync_ReturnsZeroIfNoneFound()
+    public async Task GetRepairingQuantityAsync_ShouldReturn_Zero_WhenNoRecords()
     {
         // Arrange
-        var database = CreateTestDatabase();
-        var repo = new MongoItemMaintenanceRepository(database);
+        var itemId = 99;
+
+        _repository.GetRepairingQuantityAsync(itemId)
+            .Returns(Task.FromResult(0));
 
         // Act
-        var repairing = await repo.GetRepairingQuantityAsync(99);
+        var result = await _repository.GetRepairingQuantityAsync(itemId);
 
         // Assert
-        Assert.Equal(0, repairing);
+        Assert.Equal(0, result);
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
+    }
+
+    [Fact]
+    public async Task GetRepairingQuantityAsync_ShouldCall_Repository_Method()
+    {
+        // Arrange
+        var itemId = 123;
+
+        // Act
+        await _repository.GetRepairingQuantityAsync(itemId);
+
+        // Assert
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
     }
 }

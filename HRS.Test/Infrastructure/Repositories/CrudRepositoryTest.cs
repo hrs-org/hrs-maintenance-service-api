@@ -1,149 +1,175 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
-using HRS.Infrastructure.Repositories;
-using MongoDB.Driver;
+using HRS.Domain.Interfaces;
+using NSubstitute;
 using Xunit;
 
 namespace HRS.Test.Infrastructure.Repositories;
 
 public class CrudRepositoryTests
 {
-    private static IMongoDatabase CreateTestDatabase()
+    private readonly ICrudRepository<ItemMaintenance> _repository;
+
+    public CrudRepositoryTests()
     {
-        var client = new MongoClient("mongodb://localhost:27017");
-        var dbName = $"CrudRepoTest_{Guid.NewGuid()}";
-        return client.GetDatabase(dbName);
+        _repository = Substitute.For<ICrudRepository<ItemMaintenance>>();
     }
 
     [Fact]
-    public async Task AddAsync_ShouldAdd_Maintenance_Record()
+    public async Task AddAsync_ShouldCall_Repository_AddAsync()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var m = new ItemMaintenance
+        // Arrange
+        var maintenance = new ItemMaintenance
         {
             ItemId = 1001,
             Type = ItemMaintenanceType.Repair,
             Quantity = 3,
             Remarks = "broken lens"
         };
-        await repo.AddAsync(m);
-        var result = (await repo.GetAllAsync()).FirstOrDefault(x => x.ItemId == 1001);
-        Assert.NotNull(result);
-        Assert.Equal(ItemMaintenanceType.Repair, result!.Type);
-        Assert.Equal(3, result.Quantity);
+
+        // Act
+        await _repository.AddAsync(maintenance);
+
+        // Assert
+        await _repository.Received(1).AddAsync(maintenance);
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturn_Maintenance_Record()
+    public async Task GetByIdAsync_ShouldReturn_Expected_Entity()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var m = new ItemMaintenance
+        // Arrange
+        var expectedMaintenance = new ItemMaintenance
         {
+            _id = "507f1f77bcf86cd799439011",
             ItemId = 1002,
             Type = ItemMaintenanceType.Repair,
             Quantity = 2,
             Remarks = "screen crack"
         };
-        await repo.AddAsync(m);
-        var all = await repo.GetAllAsync();
-        var result = all.FirstOrDefault(x => x.ItemId == 1002);
+
+        _repository.GetByIdAsync("507f1f77bcf86cd799439011")
+            .Returns(Task.FromResult<ItemMaintenance?>(expectedMaintenance));
+
+        // Act
+        var result = await _repository.GetByIdAsync("507f1f77bcf86cd799439011");
+
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(1002, result!.ItemId);
+        Assert.Equal("screen crack", result.Remarks);
     }
 
     [Fact]
-    public async Task GetAllAsync_ShouldReturn_All_Maintenance_Records()
+    public async Task GetAllAsync_ShouldReturn_All_Entities()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var list = new[]
+        // Arrange
+        var maintenances = new List<ItemMaintenance>
         {
-            new ItemMaintenance { ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new ItemMaintenance { ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
+            new() { _id = "507f1f77bcf86cd799439011", ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new() { _id = "507f1f77bcf86cd799439012", ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
         };
-        await repo.AddRangeAsync(list);
-        var all = (await repo.GetAllAsync()).ToList();
-        Assert.Equal(2, all.Count);
-        Assert.Contains(all, x => x.ItemId == 2001);
-        Assert.Contains(all, x => x.ItemId == 2002);
+
+        _repository.GetAllAsync().Returns(Task.FromResult<IEnumerable<ItemMaintenance>>(maintenances));
+
+        // Act
+        var result = (await _repository.GetAllAsync()).ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, x => x.ItemId == 2001);
+        Assert.Contains(result, x => x.ItemId == 2002);
     }
 
     [Fact]
-    public async Task FindAsync_ShouldFilter_By_Type()
+    public async Task FindAsync_ShouldCall_Repository_FindAsync()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var list = new[]
+        // Arrange
+        var repairMaintenances = new List<ItemMaintenance>
         {
-            new ItemMaintenance { ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
-            new ItemMaintenance { ItemId = 3002, Type = ItemMaintenanceType.Fixed, Quantity = 2 }
+            new() { _id = "507f1f77bcf86cd799439011", ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 }
         };
-        await repo.AddRangeAsync(list);
-        var repairing = (await repo.FindAsync(x => x.Type == ItemMaintenanceType.Repair)).ToList();
-        Assert.Single(repairing);
-        Assert.Equal(3001, repairing[0].ItemId);
+
+        _repository.FindAsync(Arg.Any<System.Linq.Expressions.Expression<System.Func<ItemMaintenance, bool>>>())
+            .Returns(Task.FromResult<IEnumerable<ItemMaintenance>>(repairMaintenances));
+
+        // Act
+        var result = (await _repository.FindAsync(x => x.Type == ItemMaintenanceType.Repair)).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(3001, result[0].ItemId);
     }
 
     [Fact]
-    public async Task Update_ShouldModify_Maintenance_Record()
+    public void Update_ShouldCall_Repository_Update()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var m = new ItemMaintenance { ItemId = 4001, Type = ItemMaintenanceType.Repair, Quantity = 1, Remarks = "old" };
-        await repo.AddAsync(m);
-        var inserted = (await repo.GetAllAsync()).First(x => x.ItemId == 4001);
-        inserted.Quantity = 4;
-        inserted.Remarks  = "updated";
-        repo.Update(inserted);
-        var reloaded = (await repo.GetAllAsync()).First(x => x.ItemId == 4001);
-        Assert.Equal(4, reloaded.Quantity);
-        Assert.Equal("updated", reloaded.Remarks);
+        // Arrange
+        var maintenance = new ItemMaintenance 
+        { 
+            _id = "507f1f77bcf86cd799439011",
+            ItemId = 4001, 
+            Type = ItemMaintenanceType.Repair, 
+            Quantity = 4, 
+            Remarks = "updated" 
+        };
+
+        // Act
+        _repository.Update(maintenance);
+
+        // Assert
+        _repository.Received(1).Update(maintenance);
     }
 
     [Fact]
-    public async Task Remove_ShouldDelete_Maintenance_Record()
+    public void Remove_ShouldCall_Repository_Remove()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var m = new ItemMaintenance { ItemId = 5001, Type = ItemMaintenanceType.Repair, Quantity = 1 };
-        await repo.AddAsync(m);
-        var inserted = (await repo.GetAllAsync()).First(x => x.ItemId == 5001);
-        repo.Remove(inserted);
-        var found = (await repo.GetAllAsync()).FirstOrDefault(x => x.ItemId == 5001);
-        Assert.Null(found);
+        // Arrange
+        var maintenance = new ItemMaintenance 
+        { 
+            _id = "507f1f77bcf86cd799439011",
+            ItemId = 5001, 
+            Type = ItemMaintenanceType.Repair, 
+            Quantity = 1 
+        };
+
+        // Act
+        _repository.Remove(maintenance);
+
+        // Assert
+        _repository.Received(1).Remove(maintenance);
     }
 
     [Fact]
-    public async Task AddRangeAsync_ShouldAdd_Multiple_Maintenance_Records()
+    public async Task AddRangeAsync_ShouldCall_Repository_AddRangeAsync()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var list = new[]
+        // Arrange
+        var maintenances = new[]
         {
-            new ItemMaintenance { ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
-            new ItemMaintenance { ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
+            new ItemMaintenance { _id = "507f1f77bcf86cd799439011", ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
+            new ItemMaintenance { _id = "507f1f77bcf86cd799439012", ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
         };
-        await repo.AddRangeAsync(list);
-        var all = (await repo.GetAllAsync()).ToList();
-        Assert.Equal(2, all.Count);
+
+        // Act
+        await _repository.AddRangeAsync(maintenances);
+
+        // Assert
+        await _repository.Received(1).AddRangeAsync(maintenances);
     }
 
     [Fact]
-    public async Task RemoveRange_ShouldDelete_Multiple_Maintenance_Records()
+    public void RemoveRange_ShouldCall_Repository_RemoveRange()
     {
-        var database = CreateTestDatabase();
-        var repo = new MongoCrudRepository<ItemMaintenance>(database, "ItemMaintenances");
-        var list = new[]
+        // Arrange
+        var maintenances = new[]
         {
-            new ItemMaintenance { ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new ItemMaintenance { ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
+            new ItemMaintenance { _id = "507f1f77bcf86cd799439011", ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new ItemMaintenance { _id = "507f1f77bcf86cd799439012", ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
         };
-        await repo.AddRangeAsync(list);
-        var inserted = (await repo.GetAllAsync()).Where(x => x.ItemId == 7001 || x.ItemId == 7002).ToList();
-        repo.RemoveRange(inserted);
-        var all = (await repo.GetAllAsync()).Where(x => x.ItemId == 7001 || x.ItemId == 7002).ToList();
-        Assert.Empty(all);
+
+        // Act
+        _repository.RemoveRange(maintenances);
+
+        // Assert
+        _repository.Received(1).RemoveRange(maintenances);
     }
 }

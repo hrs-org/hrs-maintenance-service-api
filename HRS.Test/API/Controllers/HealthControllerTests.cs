@@ -3,6 +3,7 @@ using HRS.API.Controllers;
 using HRS.API.Contracts.DTOs;
 using HRS.API.Contracts.DTOs.Health;
 using Microsoft.AspNetCore.Mvc;
+using HRS.Shared.Core.Dtos;
 
 namespace HRS.Test.API;
 
