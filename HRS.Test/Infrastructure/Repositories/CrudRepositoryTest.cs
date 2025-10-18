@@ -3,7 +3,6 @@ using HRS.Domain.Enums;
 using HRS.Infrastructure;
 using HRS.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HRS.Test.Infrastructure.Repositories;
 
@@ -18,150 +17,168 @@ public class CrudRepositoryTests
         return new AppDbContext(options);
     }
 
-
     [Fact]
-    public async Task AddAsync_ShouldAddItem()
+    public async Task AddAsync_ShouldAdd_Maintenance_Record()
     {
         var dbName = $"CrudRepo_AddAsync_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var item = new Item { Id = 1, Name = "TestItem", Description = "Desc", Quantity = 10, Price = 100, CreatedBy = user };
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
 
-        await repo.AddAsync(item);
+        var m = new ItemMaintenance
+        {
+            Id = 1,
+            ItemId = 1001,
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 3,
+            Remarks = "broken lens"
+        };
+
+        await repo.AddAsync(m);
         await repo.SaveChangesAsync();
 
-        var result = await dbContext.Items.FindAsync(1);
+        var result = await dbContext.ItemMaintenances.FindAsync(1);
         Assert.NotNull(result);
-        Assert.Equal("TestItem", result!.Name);
+        Assert.Equal(ItemMaintenanceType.Repair, result!.Type);
+        Assert.Equal(3, result.Quantity);
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnItem()
+    public async Task GetByIdAsync_ShouldReturn_Maintenance_Record()
     {
         var dbName = $"CrudRepo_GetById_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var item = new Item { Id = 2, Name = "Item2", Description = "Desc2", Quantity = 5, Price = 50, CreatedBy = user };
-        dbContext.Items.Add(item);
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        dbContext.ItemMaintenances.Add(new ItemMaintenance
+        {
+            Id = 2,
+            ItemId = 1002,
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 2,
+            Remarks = "screen crack"
+        });
         await dbContext.SaveChangesAsync();
 
         var result = await repo.GetByIdAsync(2);
         Assert.NotNull(result);
-        Assert.Equal("Item2", result!.Name);
+        Assert.Equal(1002, result!.ItemId);
     }
 
     [Fact]
-    public async Task GetAllAsync_ShouldReturnAllItems()
+    public async Task GetAllAsync_ShouldReturn_All_Maintenance_Records()
     {
         var dbName = $"CrudRepo_GetAll_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        dbContext.Items.AddRange(
-            new Item { Id = 3, Name = "A", Description = "D1", Quantity = 1, Price = 10, CreatedBy = user },
-            new Item { Id = 4, Name = "B", Description = "D2", Quantity = 2, Price = 20, CreatedBy = user });
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        dbContext.ItemMaintenances.AddRange(
+            new ItemMaintenance { Id = 3, ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new ItemMaintenance { Id = 4, ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
+        );
         await dbContext.SaveChangesAsync();
 
-        var result = (await repo.GetAllAsync()).ToList();
-        Assert.Equal(2, result.Count);
+        var all = (await repo.GetAllAsync()).ToList();
+        Assert.Equal(2, all.Count);
+        Assert.Contains(all, x => x.Id == 3);
+        Assert.Contains(all, x => x.Id == 4);
     }
 
     [Fact]
-    public async Task FindAsync_ShouldReturnFilteredItems()
+    public async Task FindAsync_ShouldFilter_By_Type()
     {
         var dbName = $"CrudRepo_Find_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        dbContext.Items.AddRange(
-            new Item { Id = 5, Name = "Apple", Description = "Fruit", Quantity = 10, Price = 5, CreatedBy = user },
-            new Item { Id = 6, Name = "Banana", Description = "Fruit", Quantity = 8, Price = 3, CreatedBy = user });
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        dbContext.ItemMaintenances.AddRange(
+            new ItemMaintenance { Id = 5, ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
+            new ItemMaintenance { Id = 6, ItemId = 3002, Type = ItemMaintenanceType.Fixed, Quantity = 2 }
+        );
         await dbContext.SaveChangesAsync();
 
-        var result = (await repo.FindAsync(i => i.Name.StartsWith("A"))).ToList();
-        Assert.Single(result);
-        Assert.Equal("Apple", result[0].Name);
+        var repairing = (await repo.FindAsync(x => x.Type == ItemMaintenanceType.Repair)).ToList();
+        Assert.Single(repairing);
+        Assert.Equal(5, repairing[0].Id);
     }
 
     [Fact]
-    public async Task Update_ShouldModifyItem()
+    public async Task Update_ShouldModify_Maintenance_Record()
     {
         var dbName = $"CrudRepo_Update_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var item = new Item { Id = 7, Name = "OldName", Description = "D", Quantity = 1, Price = 10, CreatedBy = user };
-        dbContext.Items.Add(item);
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        var m = new ItemMaintenance { Id = 7, ItemId = 4001, Type = ItemMaintenanceType.Repair, Quantity = 1, Remarks = "old" };
+        dbContext.ItemMaintenances.Add(m);
         await dbContext.SaveChangesAsync();
 
-        item.Name = "NewName";
-        repo.Update(item);
+        m.Quantity = 4;
+        m.Remarks  = "updated";
+        repo.Update(m);
         await repo.SaveChangesAsync();
 
-        var result = await dbContext.Items.FindAsync(7);
-        Assert.Equal("NewName", result!.Name);
+        var reloaded = await dbContext.ItemMaintenances.FindAsync(7);
+        Assert.Equal(4, reloaded!.Quantity);
+        Assert.Equal("updated", reloaded.Remarks);
     }
 
     [Fact]
-    public async Task Remove_ShouldDeleteItem()
+    public async Task Remove_ShouldDelete_Maintenance_Record()
     {
         var dbName = $"CrudRepo_Remove_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var item = new Item { Id = 8, Name = "ToDelete", Description = "D", Quantity = 1, Price = 10, CreatedBy = user };
-        dbContext.Items.Add(item);
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        var m = new ItemMaintenance { Id = 8, ItemId = 5001, Type = ItemMaintenanceType.Repair, Quantity = 1 };
+        dbContext.ItemMaintenances.Add(m);
         await dbContext.SaveChangesAsync();
 
-        repo.Remove(item);
+        repo.Remove(m);
         await repo.SaveChangesAsync();
 
-        var result = await dbContext.Items.FindAsync(8);
-        Assert.Null(result);
+        var found = await dbContext.ItemMaintenances.FindAsync(8);
+        Assert.Null(found);
     }
 
     [Fact]
-    public async Task AddRangeAsync_ShouldAddMultipleItems()
+    public async Task AddRangeAsync_ShouldAdd_Multiple_Maintenance_Records()
     {
         var dbName = $"CrudRepo_AddRange_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var items = new[]
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
+
+        var list = new[]
         {
-            new Item { Id = 9, Name = "Item9", Description = "D9", Quantity = 1, Price = 10, CreatedBy = user },
-            new Item { Id = 10, Name = "Item10", Description = "D10", Quantity = 2, Price = 20, CreatedBy = user }
+            new ItemMaintenance { Id = 9,  ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
+            new ItemMaintenance { Id = 10, ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
         };
 
-        await repo.AddRangeAsync(items);
+        await repo.AddRangeAsync(list);
         await repo.SaveChangesAsync();
 
-        var result = await dbContext.Items.ToListAsync();
-        Assert.Equal(2, result.Count);
+        var all = await dbContext.ItemMaintenances.ToListAsync();
+        Assert.Equal(2, all.Count);
     }
 
     [Fact]
-    public async Task RemoveRange_ShouldDeleteMultipleItems()
+    public async Task RemoveRange_ShouldDelete_Multiple_Maintenance_Records()
     {
         var dbName = $"CrudRepo_RemoveRange_{Guid.NewGuid()}";
         using var dbContext = CreateDbContext(dbName);
-        var repo = new CrudRepository<Item>(dbContext);
-        var user = new User { Id = 2, FirstName = "Evan", LastName = "Feri", Email = "test@mail.com", Role = UserRole.Manager, PasswordHash = "123456" };
-        var items = new[]
-        {
-            new Item { Id = 11, Name = "Item11", Description = "D11", Quantity = 1, Price = 10, CreatedBy = user },
-            new Item { Id = 12, Name = "Item12", Description = "D12", Quantity = 2, Price = 20, CreatedBy = user }
-        };
+        var repo = new CrudRepository<ItemMaintenance>(dbContext);
 
-        dbContext.Items.AddRange(items);
+        var list = new[]
+        {
+            new ItemMaintenance { Id = 11, ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new ItemMaintenance { Id = 12, ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
+        };
+        dbContext.ItemMaintenances.AddRange(list);
         await dbContext.SaveChangesAsync();
 
-        repo.RemoveRange(items);
+        repo.RemoveRange(list);
         await repo.SaveChangesAsync();
 
-        var result = await dbContext.Items.ToListAsync();
-        Assert.Empty(result);
+        var all = await dbContext.ItemMaintenances.ToListAsync();
+        Assert.Empty(all);
     }
 }
