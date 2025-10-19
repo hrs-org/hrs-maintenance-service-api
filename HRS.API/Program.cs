@@ -7,6 +7,7 @@ using HRS.API.Services.Interfaces;
 using HRS.API.Validators.Maintenance;
 using HRS.Domain.Interfaces;
 using HRS.Infrastructure.Repositories;
+using HRS.Shared.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -15,10 +16,10 @@ using MongoDB.Driver;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
+builder.Services.AddScoped<IUserContextService, UserContextService>();
 
-// 注入MongoDB版本的仓储
-builder.Services.AddScoped(typeof(ICrudRepository<>), typeof(MongoCrudRepository<>));
-builder.Services.AddScoped<IItemMaintenanceRepository, MongoItemMaintenanceRepository>();
+// 注册维护记录仓储，直接使用MongoDB实现
+builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
@@ -54,9 +55,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// MongoDB 注入
-var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDbConnection");
-var mongoDatabaseName = builder.Configuration["MongoDb:DatabaseName"];
+var mongoConnectionString = builder.Configuration["Mongo:ConnectionString"];
+var mongoDatabaseName = builder.Configuration["Mongo:Database"];
 builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
 

@@ -27,7 +27,7 @@ public class ItemMaintenanceProfileTests
         // Arrange
         var entity = new ItemMaintenance
         {
-            _id = ObjectId.GenerateNewId().ToString(),
+            Id = 1,
             ItemId = 2,
             RentalOrderId = 3,
             Type = ItemMaintenanceType.Broken,
@@ -41,6 +41,7 @@ public class ItemMaintenanceProfileTests
 
         // Assert
         dto.Should().NotBeNull();
+        dto.Id.Should().Be(entity.Id.GetHashCode()); 
         dto.ItemId.Should().Be(2);
         dto.RentalOrderId.Should().Be(3);
         dto.Type.Should().Be(ItemMaintenanceType.Broken.ToString());

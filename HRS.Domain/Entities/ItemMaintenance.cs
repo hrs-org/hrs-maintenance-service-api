@@ -1,4 +1,3 @@
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using HRS.Domain.Enums;
 
@@ -7,8 +6,7 @@ namespace HRS.Domain.Entities;
 public class ItemMaintenance
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string? _id { get; set; }
+    public int Id { get; set; }
 
     public int ItemId { get; set; }
     public int? RentalOrderId { get; set; }

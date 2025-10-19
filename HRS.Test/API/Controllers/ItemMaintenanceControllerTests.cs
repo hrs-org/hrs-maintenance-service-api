@@ -2,6 +2,7 @@ using FluentAssertions;
 using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Controllers;
 using HRS.API.Services.Interfaces;
+using HRS.Shared.Core.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 
@@ -31,8 +32,8 @@ public class ItemMaintenanceControllerTests
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((IEnumerable<ItemMaintenanceResponseDto>)apiResponse?.Data!).Should().BeEquivalentTo(maintenances);
+        var apiResponse = okResult!.Value as ApiResponse<List<ItemMaintenanceResponseDto>>;
+        apiResponse!.Data.Should().BeEquivalentTo(maintenances);
     }
 
     [Fact]
@@ -48,8 +49,8 @@ public class ItemMaintenanceControllerTests
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((ItemMaintenanceResponseDto)apiResponse?.Data!).Should().BeEquivalentTo(maintenance);
+        var apiResponse = okResult!.Value as ApiResponse<ItemMaintenanceResponseDto>;
+        apiResponse!.Data.Should().BeEquivalentTo(maintenance);
     }
 
     [Fact]
@@ -66,9 +67,9 @@ public class ItemMaintenanceControllerTests
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((ItemMaintenanceResponseDto)apiResponse?.Data!).Should().BeEquivalentTo(response);
-        ((string)apiResponse?.Message!).Should().Be("Item maintenance marked as fixed successfully");
+        var apiResponse = okResult!.Value as ApiResponse<ItemMaintenanceResponseDto>;
+        apiResponse!.Data.Should().BeEquivalentTo(response);
+        apiResponse.Message.Should().Be("Item maintenance marked as fixed successfully");
         request.Id.Should().Be(1);
         await _service.Received(1).MarkAsFixedAsync(request);
     }
