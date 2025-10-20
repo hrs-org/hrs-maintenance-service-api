@@ -1,4 +1,4 @@
-name: Deploy to UAT
+name: Release UAT to AKS
 
 on:
     workflow_dispatch:
@@ -90,12 +90,6 @@ jobs:
                     exit 1
                   fi
 
-            - name: Deploy MongoDB StatefulSet
-              run: |
-                  kubectl apply -f k8s/mongodb-statefulset.yaml
-                  echo "Waiting for MongoDB to be ready..."
-                  kubectl rollout status statefulset/mongodb -n ${{ env.NAMESPACE }} --timeout=5m
-
             - name: Prepare deployment manifest
               run: |
                   echo "Preparing deployment manifest with secrets..."
@@ -116,7 +110,7 @@ jobs:
                   echo "=== Final Deployment Manifest (sensitive values masked) ==="
                   cat k8s/deployment-final.yaml | grep -v "MONGODB_CONNECTION_STRING" | grep -v "JWT_SECRET_KEY" || cat k8s/deployment-final.yaml
 
-            - name: Deploy Application
+            - name: Deploy to AKS
               run: |
                   echo "🚀 Deploying to AKS..."
                   kubectl apply -f k8s/deployment-final.yaml
