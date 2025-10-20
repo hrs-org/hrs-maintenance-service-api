@@ -197,6 +197,6 @@ public class HealthControllerTests
         routeAttribute.Should().HaveCount(1);
 
         var route = routeAttribute.First() as RouteAttribute;
-        route!.Template.Should().Be("api/health");
+        route!.Template.Should().Be("health");
     }
 }
