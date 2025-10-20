@@ -28,18 +28,16 @@ spec:
                       - name: ASPNETCORE_URLS
                         value: "http://+:8080"
                       # MongoDB Configuration
-                      - name: MongoDbSettings__ConnectionString
+                      - name: Mongo__ConnectionString
                         value: "__MONGODB_CONNECTION_STRING__"
-                      - name: MongoDbSettings__DatabaseName
+                      - name: Mongo__Database
                         value: "__MONGODB_DATABASE_NAME__"
-                      - name: MongoDbSettings__CollectionName
-                        value: "__MONGODB_COLLECTION_NAME__"
                       # JWT Configuration
-                      - name: JwtSettings__SecretKey
+                      - name: Jwt__Key
                         value: "__JWT_SECRET_KEY__"
-                      - name: JwtSettings__Issuer
+                      - name: Jwt__Issuer
                         value: "__JWT_ISSUER__"
-                      - name: JwtSettings__Audience
+                      - name: Jwt__Audience
                         value: "__JWT_AUDIENCE__"
                       # CORS Configuration
                       - name: AllowedOrigins
