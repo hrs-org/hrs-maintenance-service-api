@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using HRS.API.Services;
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
+using HRS.Shared.Core.Enums;
 using HRS.Domain.Interfaces;
 using HRS.Shared.Core.Interfaces;
 using HRS.Shared.Core.Dtos;
@@ -19,6 +19,7 @@ public class ItemMaintenanceServiceTests
     private readonly IMapper _mapper;
     private readonly IUserContextService _userContextService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly HttpClient _httpClient;
     private readonly ItemMaintenanceService _service;
 
     public ItemMaintenanceServiceTests()
@@ -27,6 +28,7 @@ public class ItemMaintenanceServiceTests
         _mapper = Substitute.For<IMapper>();
         _userContextService = Substitute.For<IUserContextService>();
         _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+        _httpClient = Substitute.For<HttpClient>();
 
         // Setup mock user - provide all required properties
         var mockUserResult = Task.FromResult(new UserResponseDto
@@ -40,7 +42,7 @@ public class ItemMaintenanceServiceTests
         _userContextService.GetUserAsync().Returns(mockUserResult);
         _userContextService.GetUserId().Returns(10);
 
-        _service = new ItemMaintenanceService(_itemMaintenanceRepository, _userContextService, _mapper);
+        _service = new ItemMaintenanceService(_itemMaintenanceRepository, _userContextService, _mapper, _httpClient);
     }
 
     [Fact]
@@ -148,7 +150,7 @@ public class ItemMaintenanceServiceTests
 
         record.Remarks.Should().Be("Fixed");
         record.UpdatedById.Should().Be(10);
-        _itemMaintenanceRepository.Received(1).Update(record);
+        await _itemMaintenanceRepository.Received(1).AddAsync(record);
         result.Should().BeEquivalentTo(dto);
     }
 
