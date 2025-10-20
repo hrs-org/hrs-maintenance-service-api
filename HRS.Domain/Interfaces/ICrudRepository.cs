@@ -1,10 +1,12 @@
 using System.Linq.Expressions;
+using MongoDB.Bson;
 
 namespace HRS.Domain.Interfaces;
 
 public interface ICrudRepository<T> where T : class
 {
-    Task<T?> GetByIdAsync(object id);
+    Task<T?> GetByIdAsync(string id);
+    Task<T?> GetByIdAsync(ObjectId id);
     Task<IEnumerable<T>> GetAllAsync();
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
 
@@ -14,7 +16,4 @@ public interface ICrudRepository<T> where T : class
     void Update(T entity);
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
-
-    Task<int> SaveChangesAsync();
-    Task<object> BeginTransactionAsync();
 }

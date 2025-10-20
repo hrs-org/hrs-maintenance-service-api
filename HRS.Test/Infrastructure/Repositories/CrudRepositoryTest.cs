@@ -1,6 +1,7 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
+using MongoDB.Bson;
 using NSubstitute;
 using Xunit;
 
@@ -21,10 +22,11 @@ public class CrudRepositoryTests
         // Arrange
         var maintenance = new ItemMaintenance
         {
-            ItemId = 1001,
+            ItemId = "1001",
             Type = ItemMaintenanceType.Repair,
             Quantity = 3,
-            Remarks = "broken lens"
+            Remarks = "broken lens",
+            RentalOrderId = "1"
         };
 
         // Act
@@ -40,11 +42,12 @@ public class CrudRepositoryTests
         // Arrange
         var expectedMaintenance = new ItemMaintenance
         {
-            Id = "1",
-            ItemId = 1002,
+            Id = ObjectId.GenerateNewId(),
+            ItemId = "1002",
             Type = ItemMaintenanceType.Repair,
             Quantity = 2,
-            Remarks = "screen crack"
+            Remarks = "screen crack",
+            RentalOrderId = "1"
         };
 
         _repository.GetByIdAsync("507f1f77bcf86cd799439011")
@@ -55,7 +58,7 @@ public class CrudRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1002, result!.ItemId);
+        Assert.Equal("1002", result!.ItemId);
         Assert.Equal("screen crack", result.Remarks);
     }
 
@@ -65,8 +68,22 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new List<ItemMaintenance>
         {
-            new() { Id = "1", ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new() { Id = "2", ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
+            new()
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "2001",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 1,
+                RentalOrderId = "1"
+            },
+            new()
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "2002",
+                Type = ItemMaintenanceType.Fixed,
+                Quantity = 5,
+                RentalOrderId = "2"
+            }
         };
 
         _repository.GetAllAsync().Returns(Task.FromResult<IEnumerable<ItemMaintenance>>(maintenances));
@@ -76,8 +93,8 @@ public class CrudRepositoryTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, x => x.ItemId == 2001);
-        Assert.Contains(result, x => x.ItemId == 2002);
+        Assert.Contains(result, x => x.ItemId == "2001");
+        Assert.Contains(result, x => x.ItemId == "2002");
     }
 
     [Fact]
@@ -86,7 +103,14 @@ public class CrudRepositoryTests
         // Arrange
         var repairMaintenances = new List<ItemMaintenance>
         {
-            new() { Id = "1", ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 }
+            new()
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "3001",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 2,
+                RentalOrderId = "1"
+            }
         };
 
         _repository.FindAsync(Arg.Any<System.Linq.Expressions.Expression<System.Func<ItemMaintenance, bool>>>())
@@ -97,20 +121,21 @@ public class CrudRepositoryTests
 
         // Assert
         Assert.Single(result);
-        Assert.Equal(3001, result[0].ItemId);
+        Assert.Equal("3001", result[0].ItemId);
     }
 
     [Fact]
     public void Update_ShouldCall_Repository_Update()
     {
         // Arrange
-        var maintenance = new ItemMaintenance 
-        { 
-            Id = "1",
-            ItemId = 4001, 
-            Type = ItemMaintenanceType.Repair, 
-            Quantity = 4, 
-            Remarks = "updated" 
+        var maintenance = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            ItemId = "4001",
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 4,
+            Remarks = "updated",
+            RentalOrderId = "1"
         };
 
         // Act
@@ -124,12 +149,13 @@ public class CrudRepositoryTests
     public void Remove_ShouldCall_Repository_Remove()
     {
         // Arrange
-        var maintenance = new ItemMaintenance 
-        { 
-            Id = "1",
-            ItemId = 5001, 
-            Type = ItemMaintenanceType.Repair, 
-            Quantity = 1 
+        var maintenance = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            ItemId = "5001",
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 1,
+            RentalOrderId = "1"
         };
 
         // Act
@@ -145,8 +171,22 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new[]
         {
-            new ItemMaintenance { Id = "1", ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
-            new ItemMaintenance { Id = "2", ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
+            new ItemMaintenance
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "6001",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 2,
+                RentalOrderId = "1"
+            },
+            new ItemMaintenance
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "6002",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 3,
+                RentalOrderId = "2"
+            }
         };
 
         // Act
@@ -162,8 +202,22 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new[]
         {
-            new ItemMaintenance { Id = "1", ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new ItemMaintenance { Id = "2", ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
+            new ItemMaintenance
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "7001",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 1,
+                RentalOrderId = "1"
+            },
+            new ItemMaintenance
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "7002",
+                Type = ItemMaintenanceType.Repair,
+                Quantity = 1,
+                RentalOrderId = "2"
+            }
         };
 
         // Act

@@ -1,7 +1,4 @@
-using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Services.Interfaces;
-using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Shared.Core.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,14 +32,14 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] AddItemMaintenanceRequestDto request)
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] CreateItemMaintenanceRequestDto request)
     {
         var result = await _itemMaintenanceService.AddAsync(request);
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Maintenance record added successfully"));
     }
 
     [HttpPost("{id}/fix")]
-    public async Task<ActionResult<ItemMaintenanceResponseDto>> MarkAsFixed(string id, [FromBody] ItemMaintenanceRequestDto request)
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> MarkAsFixed(string id, [FromBody] FixItemMaintenanceRequestDto request)
     {
         request.Id = id;
         var result = await _itemMaintenanceService.MarkAsFixedAsync(request);

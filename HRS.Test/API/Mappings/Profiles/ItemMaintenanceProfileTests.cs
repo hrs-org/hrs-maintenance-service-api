@@ -1,9 +1,9 @@
 using AutoMapper;
 using FluentAssertions;
-using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Mappings.Profiles;
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
+using HRS.Shared.Core.Dtos;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 
@@ -27,9 +27,9 @@ public class ItemMaintenanceProfileTests
         // Arrange
         var entity = new ItemMaintenance
         {
-            Id = "1",
-            ItemId = 2,
-            RentalOrderId = 3,
+            Id = ObjectId.GenerateNewId(),
+            ItemId = "1",
+            RentalOrderId = "1",
             Type = ItemMaintenanceType.Broken,
             Quantity = 5,
             QuantityFixed = 0,
@@ -41,9 +41,9 @@ public class ItemMaintenanceProfileTests
 
         // Assert
         dto.Should().NotBeNull();
-        dto.Id.Should().Be(entity.Id); 
-        dto.ItemId.Should().Be(2);
-        dto.RentalOrderId.Should().Be(3);
+        dto.Id.Should().Be(entity.Id.ToString());
+        dto.ItemId.Should().Be("1");
+        dto.RentalOrderId.Should().Be("1");
         dto.Type.Should().Be(ItemMaintenanceType.Broken.ToString());
         dto.Quantity.Should().Be(5);
         dto.QuantityFixed.Should().Be(0);

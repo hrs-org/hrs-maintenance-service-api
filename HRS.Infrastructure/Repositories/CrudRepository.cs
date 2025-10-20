@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using HRS.Domain.Interfaces;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HRS.Infrastructure.Repositories;
@@ -15,11 +16,24 @@ public class CrudRepository<T> : ICrudRepository<T> where T : class
         _collection = db.GetCollection<T>(collectionName);
     }
 
-    public virtual async Task<T?> GetByIdAsync(object id)
+    public virtual async Task<T?> GetByIdAsync(ObjectId id)
     {
         var filter = Builders<T>.Filter.Eq("Id", id);
         return await _collection.Find(filter).FirstOrDefaultAsync();
     }
+
+    public virtual async Task<T?> GetByIdAsync(string id)
+    {
+        if (ObjectId.TryParse(id, out var oid))
+        {
+            return await GetByIdAsync(oid);
+        }
+
+        var filter = Builders<T>.Filter.Eq("Id", id);
+        return await _collection.Find(filter).FirstOrDefaultAsync();
+    }
+
+    public Task<T?> GetByIdAsync(object id) => throw new NotImplementedException();
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {

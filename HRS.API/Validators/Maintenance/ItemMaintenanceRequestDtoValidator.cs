@@ -1,9 +1,9 @@
 using FluentValidation;
-using HRS.API.Contracts.DTOs.Maintenance;
+using HRS.Shared.Core.Dtos;
 
 namespace HRS.API.Validators.Maintenance;
 
-public class ItemMaintenanceRequestDtoValidator : AbstractValidator<ItemMaintenanceRequestDto>
+public class ItemMaintenanceRequestDtoValidator : AbstractValidator<FixItemMaintenanceRequestDto>
 {
     public ItemMaintenanceRequestDtoValidator()
     {

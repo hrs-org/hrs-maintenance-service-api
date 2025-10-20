@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: hrs-maintenance-service
+    namespace: maintenance
+    labels:
+        app: hrs-maintenance-service
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: hrs-maintenance-service
+    template:
+        metadata:
+            labels:
+                app: hrs-maintenance-service
+        spec:
+            containers:
+                - name: hrs-maintenance-service
+                  image: __ACR_NAME__.azurecr.io/hrs-maintenance-service:__IMAGE_TAG__
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 8080
+                        name: http
+                  env:
+                      - name: ASPNETCORE_ENVIRONMENT
+                        value: "Production"
+                      - name: ASPNETCORE_URLS
+                        value: "http://+:8080"
+                      # MongoDB Configuration
+                      - name: MongoDbSettings__ConnectionString
+                        value: "__MONGODB_CONNECTION_STRING__"
+                      - name: MongoDbSettings__DatabaseName
+                        value: "__MONGODB_DATABASE_NAME__"
+                      - name: MongoDbSettings__CollectionName
+                        value: "__MONGODB_COLLECTION_NAME__"
+                      # JWT Configuration
+                      - name: JwtSettings__SecretKey
+                        value: "__JWT_SECRET_KEY__"
+                      - name: JwtSettings__Issuer
+                        value: "__JWT_ISSUER__"
+                      - name: JwtSettings__Audience
+                        value: "__JWT_AUDIENCE__"
+                      # CORS Configuration
+                      - name: AllowedOrigins
+                        value: "__ALLOWED_ORIGINS__"
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "250m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "500m"
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: 8080
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: 8080
+                      initialDelaySeconds: 15
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 2
+            imagePullSecrets:
+                - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: hrs-maintenance-service
+    namespace: maintenance
+    labels:
+        app: hrs-maintenance-service
+spec:
+    type: ClusterIP
+    ports:
+        - port: 80
+          targetPort: 8080
+          protocol: TCP
+          name: http
+    selector:
+        app: hrs-maintenance-service

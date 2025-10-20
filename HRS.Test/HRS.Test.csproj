@@ -27,13 +27,4 @@
         <ProjectReference Include="..\HRS.Domain\HRS.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="API\Validators\Auth\" />
-      <Folder Include="API\Validators\Item\" />
-      <Folder Include="API\Validators\Package\" />
-      <Folder Include="API\Validators\Payment\" />
-      <Folder Include="API\Validators\Rental\" />
-      <Folder Include="API\Validators\User\" />
-    </ItemGroup>
-
 </Project>

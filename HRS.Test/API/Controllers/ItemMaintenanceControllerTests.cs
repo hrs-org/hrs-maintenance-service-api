@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentAssertions;
-using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Controllers;
 using HRS.API.Services.Interfaces;
 using HRS.Domain.Interfaces;
@@ -60,7 +59,7 @@ public class ItemMaintenanceControllerTests
     public async Task MarkAsFixed_ReturnsOkWithApiResponse()
     {
         // Arrange
-        var request = new ItemMaintenanceRequestDto { Id = "1" };
+        var request = new FixItemMaintenanceRequestDto { Id = "1" };
         var response = new ItemMaintenanceResponseDto { Id = "1" };
         _service.MarkAsFixedAsync(request).Returns(response);
 
