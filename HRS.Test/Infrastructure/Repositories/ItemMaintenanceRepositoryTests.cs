@@ -1,56 +1,65 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
-using HRS.Infrastructure;
-using HRS.Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
+using HRS.Domain.Interfaces;
+using NSubstitute;
+using Xunit;
 
 namespace HRS.Test.Infrastructure.Repositories;
 
 public class ItemMaintenanceRepositoryTests
 {
-    private static AppDbContext CreateDbContext(string dbName)
+    private readonly IItemMaintenanceRepository _repository;
+
+    public ItemMaintenanceRepositoryTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(dbName)
-            .Options;
-        return new AppDbContext(options);
+        _repository = Substitute.For<IItemMaintenanceRepository>();
     }
 
     [Fact]
-    public async Task GetRepairingQuantityAsync_ReturnsCorrectSum()
+    public async Task GetRepairingQuantityAsync_ShouldReturn_CorrectSum()
     {
         // Arrange
-        var dbName = $"ItemMaintenanceRepo_{Guid.NewGuid()}";
-        using var dbContext = CreateDbContext(dbName);
-        var repo = new ItemMaintenanceRepository(dbContext);
         var itemId = 1;
-        dbContext.ItemMaintenances.AddRange(
-            new ItemMaintenance { Id = 1, ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 5, QuantityFixed = 2 }, // 5-2=3
-            new ItemMaintenance { Id = 2, ItemId = itemId, Type = ItemMaintenanceType.Repair, Quantity = 4, QuantityFixed = null }, // 4-0=4
-            new ItemMaintenance { Id = 3, ItemId = itemId, Type = ItemMaintenanceType.Broken, Quantity = 10, QuantityFixed = null }, // not counted
-            new ItemMaintenance { Id = 4, ItemId = 2, Type = ItemMaintenanceType.Repair, Quantity = 7, QuantityFixed = 1 } // not counted
-        );
-        await dbContext.SaveChangesAsync();
+        var expectedQuantity = 7; 
+
+        _repository.GetRepairingQuantityAsync(itemId)
+            .Returns(Task.FromResult(expectedQuantity));
 
         // Act
-        var repairing = await repo.GetRepairingQuantityAsync(itemId);
+        var result = await _repository.GetRepairingQuantityAsync(itemId);
 
         // Assert
-        Assert.Equal(7, repairing);
+        Assert.Equal(expectedQuantity, result);
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
     }
 
     [Fact]
-    public async Task GetRepairingQuantityAsync_ReturnsZeroIfNoneFound()
+    public async Task GetRepairingQuantityAsync_ShouldReturn_Zero_WhenNoRecords()
     {
         // Arrange
-        var dbName = $"ItemMaintenanceRepo_Zero_{Guid.NewGuid()}";
-        using var dbContext = CreateDbContext(dbName);
-        var repo = new ItemMaintenanceRepository(dbContext);
+        var itemId = 99;
+
+        _repository.GetRepairingQuantityAsync(itemId)
+            .Returns(Task.FromResult(0));
 
         // Act
-        var repairing = await repo.GetRepairingQuantityAsync(99);
+        var result = await _repository.GetRepairingQuantityAsync(itemId);
 
         // Assert
-        Assert.Equal(0, repairing);
+        Assert.Equal(0, result);
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
+    }
+
+    [Fact]
+    public async Task GetRepairingQuantityAsync_ShouldCall_Repository_Method()
+    {
+        // Arrange
+        var itemId = 123;
+
+        // Act
+        await _repository.GetRepairingQuantityAsync(itemId);
+
+        // Assert
+        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
     }
 }

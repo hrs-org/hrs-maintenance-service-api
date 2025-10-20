@@ -1,39 +1,71 @@
 using System.Linq.Expressions;
 using HRS.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using MongoDB.Driver;
 
 namespace HRS.Infrastructure.Repositories;
 
 public class CrudRepository<T> : ICrudRepository<T> where T : class
 {
-    protected readonly AppDbContext _db;
-    protected readonly DbSet<T> _dbSet;
+    protected readonly IMongoDatabase _db;
+    protected readonly IMongoCollection<T> _collection;
 
-    public CrudRepository(AppDbContext db)
+    public CrudRepository(IMongoDatabase db, string collectionName)
     {
         _db = db;
-        _dbSet = db.Set<T>();
+        _collection = db.GetCollection<T>(collectionName);
     }
 
-    public async Task<T?> GetByIdAsync(object id) => await _dbSet.FindAsync(id);
+    public virtual async Task<T?> GetByIdAsync(object id)
+    {
+        var filter = Builders<T>.Filter.Eq("Id", id);
+        return await _collection.Find(filter).FirstOrDefaultAsync();
+    }
 
-    public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+    public virtual async Task<IEnumerable<T>> GetAllAsync()
+    {
+        return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync();
+    }
 
-    public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
-        => await _dbSet.Where(predicate).ToListAsync();
+    public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _collection.Find(predicate).ToListAsync();
+    }
 
-    public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+    public virtual async Task AddAsync(T entity)
+    {
+        await _collection.InsertOneAsync(entity);
+    }
 
-    public async Task AddRangeAsync(IEnumerable<T> entities) => await _dbSet.AddRangeAsync(entities);
+    public virtual async Task AddRangeAsync(IEnumerable<T> entities)
+    {
+        await _collection.InsertManyAsync(entities);
+    }
 
-    public void Update(T entity) => _dbSet.Update(entity);
+    public virtual void Update(T entity)
+    {
+        throw new NotSupportedException("Update operation must be implemented in derived classes or use UpdateAsync method");
+    }
 
-    public void Remove(T entity) => _dbSet.Remove(entity);
+    public virtual void Remove(T entity)
+    {
+        throw new NotSupportedException("Remove operation must be implemented in derived classes or use RemoveAsync method");
+    }
 
-    public void RemoveRange(IEnumerable<T> entities) => _dbSet.RemoveRange(entities);
+    public virtual void RemoveRange(IEnumerable<T> entities)
+    {
+        foreach (var entity in entities)
+        {
+            Remove(entity);
+        }
+    }
 
-    public async Task<int> SaveChangesAsync() => await _db.SaveChangesAsync();
+    public virtual Task<int> SaveChangesAsync()
+    {
+        return Task.FromResult(0);
+    }
 
-    public async Task<IDbContextTransaction> BeginTransactionAsync() => await _db.Database.BeginTransactionAsync();
+    public virtual Task<object> BeginTransactionAsync()
+    {
+        throw new NotSupportedException("Transactions are not supported by this repository.");
+    }
 }

@@ -2,7 +2,7 @@ namespace HRS.API.Contracts.DTOs.Maintenance;
 
 public class ItemMaintenanceResponseDto
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public int ItemId { get; set; }
     public int? RentalOrderId { get; set; }
     public string? Type { get; set; }

@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HRS.Domain.Interfaces;
 
@@ -17,5 +16,5 @@ public interface ICrudRepository<T> where T : class
     void RemoveRange(IEnumerable<T> entities);
 
     Task<int> SaveChangesAsync();
-    Task<IDbContextTransaction> BeginTransactionAsync();
+    Task<object> BeginTransactionAsync();
 }

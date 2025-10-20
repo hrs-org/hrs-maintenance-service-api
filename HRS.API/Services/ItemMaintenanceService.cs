@@ -1,9 +1,12 @@
 using AutoMapper;
 using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Services.Interfaces;
+using HRS.Domain.Entities;
 using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
-using Microsoft.AspNetCore.Http;
+using HRS.Shared.Core.Interfaces;
+using HRS.Shared.Core.Dtos;
+using Stripe.Forwarding;
 
 namespace HRS.API.Services;
 
@@ -11,19 +14,19 @@ public class ItemMaintenanceService : IItemMaintenanceService
 {
     private readonly IItemMaintenanceRepository _itemMaintenanceRepository;
     private readonly IMapper _mapper;
-    private readonly IHttpContextAccessor _http;
+    private readonly IUserContextService _userContextService;
 
     public ItemMaintenanceService(
         IItemMaintenanceRepository itemMaintenanceRepository,
-        IHttpContextAccessor httpContextAccessor,
+        IUserContextService userContextService,
         IMapper mapper)
     {
         _itemMaintenanceRepository = itemMaintenanceRepository;
-        _http = httpContextAccessor;
+        _userContextService = userContextService;
         _mapper = mapper;
     }
 
-    public async Task<ItemMaintenanceResponseDto> GetAsync(int id)
+    public async Task<ItemMaintenanceResponseDto> GetAsync(string id)
     {
         var record = await _itemMaintenanceRepository.GetByIdAsync(id)
                      ?? throw new KeyNotFoundException("Maintenance record not found.");
@@ -36,34 +39,50 @@ public class ItemMaintenanceService : IItemMaintenanceService
         return _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(records);
     }
 
+    public async Task<ItemMaintenanceResponseDto> AddAsync(AddItemMaintenanceRequestDto request)
+    {
+        var user = await _userContextService.GetUserAsync();
+
+        var maintenance = new ItemMaintenance
+        {
+            ItemId = request.ItemId,
+            Type = ItemMaintenanceType.Repair,     
+            RentalOrderId = null,                  
+            Quantity = request.Quantity,
+            QuantityFixed = 0,
+            CreatedAt = DateTime.UtcNow,
+            Remarks = request.Remarks
+        };
+
+        await _itemMaintenanceRepository.AddAsync(maintenance);
+
+        return _mapper.Map<ItemMaintenanceResponseDto>(maintenance);
+    }
+
     public async Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(ItemMaintenanceRequestDto request)
     {
+        var user = await _userContextService.GetUserAsync();
+
         var record = await _itemMaintenanceRepository.GetByIdAsync(request.Id)
                      ?? throw new KeyNotFoundException("Maintenance record not found.");
 
         if (record.Type != ItemMaintenanceType.Repair)
             throw new InvalidOperationException("Only 'Repair' maintenance can be marked as fixed.");
 
-        if (request.QuantityFixed <= 0)
+        if (request.QuantityFixed <= 0 || request.QuantityFixed > record.Quantity)
             throw new ArgumentException("Invalid quantity to fix.");
 
-        // 从 JWT 读取操作者
-        var userId =
-            _http.HttpContext?.User?.FindFirst("sub")?.Value ??
-            _http.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
-            "system";
-
-        // 标记为已修复
-        record.Type = ItemMaintenanceType.Fixed;
+        // Mark as fixed
+        record.QuantityFixed += request.QuantityFixed;
+        if (record.QuantityFixed == record.Quantity)
+        {
+            record.Type = ItemMaintenanceType.Fixed;
+        }
         record.Remarks = request.Remarks ?? $"Marked as fixed on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
         record.UpdatedAt = DateTime.UtcNow;
-        if (int.TryParse(userId, out var userIdInt))
-            record.UpdatedById = userIdInt;
-        else
-            record.UpdatedById = null;
+        record.UpdatedById = user.Id;
 
         _itemMaintenanceRepository.Update(record);
-        await _itemMaintenanceRepository.SaveChangesAsync();
 
         return _mapper.Map<ItemMaintenanceResponseDto>(record);
     }

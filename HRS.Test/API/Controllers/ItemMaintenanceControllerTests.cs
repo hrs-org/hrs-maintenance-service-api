@@ -1,7 +1,11 @@
+using AutoMapper;
 using FluentAssertions;
 using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Controllers;
 using HRS.API.Services.Interfaces;
+using HRS.Domain.Interfaces;
+using HRS.Shared.Core.Dtos;
+using HRS.Shared.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 
@@ -22,7 +26,7 @@ public class ItemMaintenanceControllerTests
     public async Task GetAll_ReturnsOkWithList()
     {
         // Arrange
-        var maintenances = new List<ItemMaintenanceResponseDto> { new() { Id = 1 }, new() { Id = 2 } };
+        var maintenances = new List<ItemMaintenanceResponseDto> { new() { Id = "1" }, new() { Id = "2" } };
         _service.GetAllAsync().Returns(maintenances);
 
         // Act
@@ -31,45 +35,45 @@ public class ItemMaintenanceControllerTests
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((IEnumerable<ItemMaintenanceResponseDto>)apiResponse?.Data!).Should().BeEquivalentTo(maintenances);
+        var apiResponse = okResult!.Value as ApiResponse<List<ItemMaintenanceResponseDto>>;
+        apiResponse!.Data.Should().BeEquivalentTo(maintenances);
     }
 
     [Fact]
     public async Task GetById_ReturnsOkWithItem()
     {
         // Arrange
-        var maintenance = new ItemMaintenanceResponseDto { Id = 1 };
-        _service.GetAsync(1).Returns(maintenance);
+        var maintenance = new ItemMaintenanceResponseDto { Id = "1" };
+        _service.GetAsync("1").Returns(maintenance);
 
         // Act
-        var result = await _controller.GetById(1);
+        var result = await _controller.GetById("1");
 
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((ItemMaintenanceResponseDto)apiResponse?.Data!).Should().BeEquivalentTo(maintenance);
+        var apiResponse = okResult!.Value as ApiResponse<ItemMaintenanceResponseDto>;
+        apiResponse!.Data.Should().BeEquivalentTo(maintenance);
     }
 
     [Fact]
     public async Task MarkAsFixed_ReturnsOkWithApiResponse()
     {
         // Arrange
-        var request = new ItemMaintenanceRequestDto { Id = 1 };
-        var response = new ItemMaintenanceResponseDto { Id = 1 };
+        var request = new ItemMaintenanceRequestDto { Id = "1" };
+        var response = new ItemMaintenanceResponseDto { Id = "1" };
         _service.MarkAsFixedAsync(request).Returns(response);
 
         // Act
-        var result = await _controller.MarkAsFixed(1, request);
+        var result = await _controller.MarkAsFixed("1", request);
 
         // Assert
         var okResult = result.Result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var apiResponse = okResult.Value as dynamic;
-        ((ItemMaintenanceResponseDto)apiResponse?.Data!).Should().BeEquivalentTo(response);
-        ((string)apiResponse?.Message!).Should().Be("Item maintenance marked as fixed successfully");
-        request.Id.Should().Be(1);
+        var apiResponse = okResult!.Value as ApiResponse<ItemMaintenanceResponseDto>;
+        apiResponse!.Data.Should().BeEquivalentTo(response);
+        apiResponse.Message.Should().Be("Maintenance status updated successfully");
+        request.Id.Should().Be("1");
         await _service.Received(1).MarkAsFixedAsync(request);
     }
 }

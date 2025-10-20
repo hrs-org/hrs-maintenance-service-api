@@ -1,20 +1,54 @@
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace HRS.Infrastructure.Repositories;
-
 public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemMaintenanceRepository
 {
-    public ItemMaintenanceRepository(AppDbContext db) : base(db)
+    public ItemMaintenanceRepository(IMongoDatabase database) : base(database, "ItemMaintenances")
     {
+    }
+
+    public override void Update(ItemMaintenance entity)
+    {
+        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
+        _collection.ReplaceOne(filter, entity);
+    }
+
+    public override void Remove(ItemMaintenance entity)
+    {
+        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
+        _collection.DeleteOne(filter);
     }
 
     public async Task<int> GetRepairingQuantityAsync(int itemId)
     {
-        return await _db.ItemMaintenances
-            .Where(m => m.ItemId == itemId && m.Type == ItemMaintenanceType.Repair)
-            .SumAsync(m => m.Quantity - (m.QuantityFixed ?? 0));
+        var pipeline = new[]
+        {
+            new BsonDocument("$match", new BsonDocument
+            {
+                { "ItemId", itemId },
+                { "Type", (int)ItemMaintenanceType.Repair }
+            }),
+            new BsonDocument("$project", new BsonDocument
+            {
+                { "quantityToSum", new BsonDocument("$subtract", new BsonArray
+                    {
+                        "$Quantity",
+                        new BsonDocument("$ifNull", new BsonArray { "$QuantityFixed", 0 })
+                    })
+                }
+            }),
+            new BsonDocument("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value },
+                { "total", new BsonDocument("$sum", "$quantityToSum") }
+            })
+        };
+
+        var result = await _collection.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();
+        return result?["total"]?.AsInt32 ?? 0;
     }
 }
