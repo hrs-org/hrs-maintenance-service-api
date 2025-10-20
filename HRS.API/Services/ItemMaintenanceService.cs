@@ -1,5 +1,4 @@
 using AutoMapper;
-using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Services.Interfaces;
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
@@ -39,19 +38,22 @@ public class ItemMaintenanceService : IItemMaintenanceService
         return _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(records);
     }
 
-    public async Task<ItemMaintenanceResponseDto> AddAsync(AddItemMaintenanceRequestDto request)
+    public async Task<ItemMaintenanceResponseDto> AddAsync(CreateItemMaintenanceRequestDto request)
     {
-        var user = await _userContextService.GetUserAsync();
+        var userId = _userContextService.GetUserId();
+        var storeId = _userContextService.GetStoreId();
 
         var maintenance = new ItemMaintenance
         {
             ItemId = request.ItemId,
-            Type = ItemMaintenanceType.Repair,     
-            RentalOrderId = null,                  
+            Type = ItemMaintenanceType.Repair,
+            RentalOrderId = request.RentalOrderId,
             Quantity = request.Quantity,
             QuantityFixed = 0,
+            CreatedById = userId,
             CreatedAt = DateTime.UtcNow,
-            Remarks = request.Remarks
+            Remarks = request.Remarks,
+            StoreId = storeId
         };
 
         await _itemMaintenanceRepository.AddAsync(maintenance);
@@ -59,7 +61,7 @@ public class ItemMaintenanceService : IItemMaintenanceService
         return _mapper.Map<ItemMaintenanceResponseDto>(maintenance);
     }
 
-    public async Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(ItemMaintenanceRequestDto request)
+    public async Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(FixItemMaintenanceRequestDto request)
     {
         var user = await _userContextService.GetUserAsync();
 

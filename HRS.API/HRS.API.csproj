@@ -17,7 +17,7 @@
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
         <PackageReference Include="FluentValidation" Version="12.0.0" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
-        <PackageReference Include="HRS.Shared.Core" Version="0.1.5" />
+        <PackageReference Include="HRS.Shared.Core" Version="0.1.10" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.19" />
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
@@ -37,26 +37,6 @@
     <ItemGroup>
         <ProjectReference Include="..\HRS.Infrastructure\HRS.Infrastructure.csproj" />
         <ProjectReference Include="..\HRS.Domain\HRS.Domain.csproj" />
-        <ProjectReference Include="..\HRS.Migrations\HRS.Migrations.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Contracts\DTOs\Auth\" />
-      <Folder Include="Contracts\DTOs\Availability\" />
-      <Folder Include="Contracts\DTOs\Catalog\" />
-      <Folder Include="Contracts\DTOs\Item\" />
-      <Folder Include="Contracts\DTOs\Package\" />
-      <Folder Include="Contracts\DTOs\Payment\" />
-      <Folder Include="Contracts\DTOs\RentalOrder\" />
-      <Folder Include="Contracts\DTOs\User\" />
-      <Folder Include="Models\" />
-      <Folder Include="Services\Helpers\" />
-      <Folder Include="Validators\Auth\" />
-      <Folder Include="Validators\Item\" />
-      <Folder Include="Validators\Package\" />
-      <Folder Include="Validators\Payment\" />
-      <Folder Include="Validators\RentalOrder\" />
-      <Folder Include="Validators\User\" />
     </ItemGroup>
 
 </Project>

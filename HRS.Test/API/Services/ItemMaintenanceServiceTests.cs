@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentAssertions;
-using HRS.API.Contracts.DTOs.Maintenance;
 using HRS.API.Services;
 using HRS.Domain.Entities;
 using HRS.Domain.Enums;
@@ -28,26 +27,33 @@ public class ItemMaintenanceServiceTests
         _mapper = Substitute.For<IMapper>();
         _userContextService = Substitute.For<IUserContextService>();
         _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
-        
+
         // Setup mock user - provide all required properties
-        var mockUserResult = Task.FromResult(new UserResponseDto 
-        { 
-            Id = 10, 
-            FirstName = "Test", 
+        var mockUserResult = Task.FromResult(new UserResponseDto
+        {
+            Id = 10,
+            FirstName = "Test",
             LastName = "User",
             Email = "test@example.com",
             Role = "Employee"
         });
         _userContextService.GetUserAsync().Returns(mockUserResult);
         _userContextService.GetUserId().Returns(10);
-        
+
         _service = new ItemMaintenanceService(_itemMaintenanceRepository, _userContextService, _mapper);
     }
 
     [Fact]
     public async Task GetAsync_WhenRecordExists_ReturnsMappedDto()
     {
-        var record = new ItemMaintenance { Id = "1", Type = ItemMaintenanceType.Repair, Quantity = 2 };
+        var record = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 2,
+            ItemId = "1",
+            RentalOrderId = "1"
+        };
         var dto = new ItemMaintenanceResponseDto { Id = "1" };
 
         _itemMaintenanceRepository.GetByIdAsync("1")
@@ -71,7 +77,20 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task GetAllAsync_ReturnsMappedDtos()
     {
-        var records = new List<ItemMaintenance> { new() { Id = "1" }, new() { Id = "2" } };
+        var records = new List<ItemMaintenance> {
+            new()
+        {
+            Id = ObjectId.GenerateNewId(),
+            ItemId = "1",
+            RentalOrderId = "1"
+        },
+            new()
+            {
+                Id = ObjectId.GenerateNewId(),
+                ItemId = "2",
+                RentalOrderId = "2"
+            }
+        };
         var dtos = new List<ItemMaintenanceResponseDto> { new() { Id = "1" }, new() { Id = "2" } };
 
         _itemMaintenanceRepository.GetAllAsync()
@@ -89,11 +108,11 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task AddAsync_WhenValid_CreatesRecordAndReturnsDto()
     {
-        var request = new AddItemMaintenanceRequestDto 
-        { 
-            ItemId = 1, 
-            Quantity = 5, 
-            Remarks = "Test maintenance" 
+        var request = new AddItemMaintenanceRequestDto
+        {
+            ItemId = 1,
+            Quantity = 5,
+            Remarks = "Test maintenance"
         };
         var dto = new ItemMaintenanceResponseDto { Id = "1", ItemId = 1, Quantity = 5 };
 
@@ -110,8 +129,15 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenValid_UpdatesRecordAndReturnsDto()
     {
-        var record = new ItemMaintenance { Id = "1", Type = ItemMaintenanceType.Repair, Quantity = 5 };
-        var request = new ItemMaintenanceRequestDto { Id = "1", QuantityFixed = 3, Remarks = "Fixed" };
+        var record = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 5,
+            ItemId = "1",
+            RentalOrderId = "1"
+        };
+        var request = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = 3, Remarks = "Fixed" };
         var dto = new ItemMaintenanceResponseDto { Id = "1" };
 
         _itemMaintenanceRepository.GetByIdAsync(Arg.Any<string>())
@@ -121,7 +147,7 @@ public class ItemMaintenanceServiceTests
         var result = await _service.MarkAsFixedAsync(request);
 
         record.Remarks.Should().Be("Fixed");
-        record.UpdatedById.Should().Be(10); 
+        record.UpdatedById.Should().Be(10);
         _itemMaintenanceRepository.Received(1).Update(record);
         result.Should().BeEquivalentTo(dto);
     }
@@ -129,7 +155,7 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenRecordNotFound_ThrowsKeyNotFoundException()
     {
-        var request = new ItemMaintenanceRequestDto { Id = "1", QuantityFixed = 1 };
+        var request = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = 1 };
 
         _itemMaintenanceRepository.GetByIdAsync(Arg.Any<string>())
             .Returns(Task.FromResult<ItemMaintenance?>(null));
@@ -140,8 +166,15 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenTypeNotRepair_ThrowsInvalidOperationException()
     {
-        var record = new ItemMaintenance { Id = "1", Type = ItemMaintenanceType.Fixed, Quantity = 5 };
-        var request = new ItemMaintenanceRequestDto { Id = "1", QuantityFixed = 1 };
+        var record = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            Type = ItemMaintenanceType.Fixed,
+            Quantity = 5,
+            ItemId = "1",
+            RentalOrderId = "1"
+        };
+        var request = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = 1 };
 
         _itemMaintenanceRepository.GetByIdAsync(Arg.Any<string>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));
@@ -154,8 +187,15 @@ public class ItemMaintenanceServiceTests
     [InlineData(-1)]
     public async Task MarkAsFixedAsync_WhenQuantityInvalid_ThrowsArgumentException(int quantityFixed)
     {
-        var record = new ItemMaintenance { Id = "1", Type = ItemMaintenanceType.Repair, Quantity = 5 };
-        var request = new ItemMaintenanceRequestDto { Id = "1", QuantityFixed = quantityFixed };
+        var record = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 5,
+            ItemId = "1",
+            RentalOrderId = "1"
+        };
+        var request = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = quantityFixed };
 
         _itemMaintenanceRepository.GetByIdAsync(Arg.Any<string>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));
@@ -166,8 +206,15 @@ public class ItemMaintenanceServiceTests
     [Fact]
     public async Task MarkAsFixedAsync_WhenQuantityExceedsTotal_ThrowsArgumentException()
     {
-        var record = new ItemMaintenance { Id = "1", Type = ItemMaintenanceType.Repair, Quantity = 5 };
-        var request = new ItemMaintenanceRequestDto { Id = "1", QuantityFixed = 10 }; // > record.Quantity
+        var record = new ItemMaintenance
+        {
+            Id = ObjectId.GenerateNewId(),
+            Type = ItemMaintenanceType.Repair,
+            Quantity = 5,
+            ItemId = "1",
+            RentalOrderId = "1"
+        };
+        var request = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = 10 }; // > record.Quantity
 
         _itemMaintenanceRepository.GetByIdAsync(Arg.Any<string>())
             .Returns(Task.FromResult<ItemMaintenance?>(record));

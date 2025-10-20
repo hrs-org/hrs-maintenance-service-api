@@ -17,8 +17,13 @@ public class UserContextService : IUserContextService
     {
         var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value ??
                          _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
+
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+    }
+
+    public int GetStoreId()
+    {
+        return int.Parse(_httpContextAccessor.HttpContext?.User?.FindFirst("email")?.Value ?? "0");
     }
 
     public string? GetEmail()
@@ -33,7 +38,7 @@ public class UserContextService : IUserContextService
         var email = GetEmail();
         var firstName = _httpContextAccessor.HttpContext?.User?.FindFirst("given_name")?.Value ?? "Unknown";
         var lastName = _httpContextAccessor.HttpContext?.User?.FindFirst("family_name")?.Value ?? "User";
-        var role = _httpContextAccessor.HttpContext?.User?.FindFirst("role")?.Value ?? 
+        var role = _httpContextAccessor.HttpContext?.User?.FindFirst("role")?.Value ??
                   _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value ?? "User";
 
         return await Task.FromResult(new UserResponseDto

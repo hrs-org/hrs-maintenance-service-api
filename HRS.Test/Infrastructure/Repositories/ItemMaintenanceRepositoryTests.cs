@@ -20,7 +20,7 @@ public class ItemMaintenanceRepositoryTests
     {
         // Arrange
         var itemId = 1;
-        var expectedQuantity = 7; 
+        var expectedQuantity = 7;
 
         _repository.GetRepairingQuantityAsync(itemId)
             .Returns(Task.FromResult(expectedQuantity));

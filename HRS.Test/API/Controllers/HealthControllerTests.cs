@@ -1,10 +1,9 @@
 using FluentAssertions;
 using HRS.API.Controllers;
-using HRS.API.Contracts.DTOs.Health;
-using Microsoft.AspNetCore.Mvc;
 using HRS.Shared.Core.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
-namespace HRS.Test.API;
+namespace HRS.Test.API.Controllers;
 
 public class HealthControllerTests
 {
