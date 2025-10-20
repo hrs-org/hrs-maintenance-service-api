@@ -16,5 +16,5 @@ public interface ICrudRepository<T> where T : class
     void RemoveRange(IEnumerable<T> entities);
 
     Task<int> SaveChangesAsync();
-    Task<object> BeginTransactionAsync(); 
+    Task<object> BeginTransactionAsync();
 }

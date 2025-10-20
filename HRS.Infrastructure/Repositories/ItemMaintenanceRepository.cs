@@ -25,11 +25,30 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
 
     public async Task<int> GetRepairingQuantityAsync(int itemId)
     {
-        var filter = Builders<ItemMaintenance>.Filter.And(
-            Builders<ItemMaintenance>.Filter.Eq(x => x.ItemId, itemId),
-            Builders<ItemMaintenance>.Filter.Eq(x => x.Type, ItemMaintenanceType.Repair)
-        );
-        var maintenances = await _collection.Find(filter).ToListAsync();
-        return maintenances.Sum(m => m.Quantity - (m.QuantityFixed ?? 0));
+        var pipeline = new[]
+        {
+            new BsonDocument("$match", new BsonDocument
+            {
+                { "ItemId", itemId },
+                { "Type", (int)ItemMaintenanceType.Repair }
+            }),
+            new BsonDocument("$project", new BsonDocument
+            {
+                { "quantityToSum", new BsonDocument("$subtract", new BsonArray
+                    {
+                        "$Quantity",
+                        new BsonDocument("$ifNull", new BsonArray { "$QuantityFixed", 0 })
+                    })
+                }
+            }),
+            new BsonDocument("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value },
+                { "total", new BsonDocument("$sum", "$quantityToSum") }
+            })
+        };
+
+        var result = await _collection.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();
+        return result?["total"]?.AsInt32 ?? 0;
     }
 }

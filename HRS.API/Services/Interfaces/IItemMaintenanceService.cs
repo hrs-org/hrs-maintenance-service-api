@@ -6,8 +6,8 @@ namespace HRS.API.Services.Interfaces;
 
 public interface IItemMaintenanceService
 {
-    Task<ItemMaintenanceResponseDto> GetAsync(int id);
+    Task<ItemMaintenanceResponseDto> GetAsync(string id);
     Task<IEnumerable<ItemMaintenanceResponseDto>> GetAllAsync();
-    Task<ItemMaintenanceResponseDto> AddAsync(int itemId, int quantity, string? remarks, int? rentalOrderId = null, ItemMaintenanceType? type = null, int? createdById = null, DateTime? createdAt = null, int? quantityFixed = null);
+    Task<ItemMaintenanceResponseDto> AddAsync(AddItemMaintenanceRequestDto request);
     Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(ItemMaintenanceRequestDto request);
 }

@@ -1,12 +1,10 @@
-using MongoDB.Bson.Serialization.Attributes;
 using HRS.Domain.Enums;
 
 namespace HRS.Domain.Entities;
 
 public class ItemMaintenance
 {
-    [BsonId]
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
 
     public int ItemId { get; set; }
     public int? RentalOrderId { get; set; }

@@ -40,7 +40,7 @@ public class CrudRepositoryTests
         // Arrange
         var expectedMaintenance = new ItemMaintenance
         {
-            Id = 1,
+            Id = "1",
             ItemId = 1002,
             Type = ItemMaintenanceType.Repair,
             Quantity = 2,
@@ -65,8 +65,8 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new List<ItemMaintenance>
         {
-            new() { Id = 1, ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new() { Id = 2, ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
+            new() { Id = "1", ItemId = 2001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new() { Id = "2", ItemId = 2002, Type = ItemMaintenanceType.Fixed, Quantity = 5 }
         };
 
         _repository.GetAllAsync().Returns(Task.FromResult<IEnumerable<ItemMaintenance>>(maintenances));
@@ -86,7 +86,7 @@ public class CrudRepositoryTests
         // Arrange
         var repairMaintenances = new List<ItemMaintenance>
         {
-            new() { Id = 1, ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 }
+            new() { Id = "1", ItemId = 3001, Type = ItemMaintenanceType.Repair, Quantity = 2 }
         };
 
         _repository.FindAsync(Arg.Any<System.Linq.Expressions.Expression<System.Func<ItemMaintenance, bool>>>())
@@ -106,7 +106,7 @@ public class CrudRepositoryTests
         // Arrange
         var maintenance = new ItemMaintenance 
         { 
-            Id = 1,
+            Id = "1",
             ItemId = 4001, 
             Type = ItemMaintenanceType.Repair, 
             Quantity = 4, 
@@ -126,7 +126,7 @@ public class CrudRepositoryTests
         // Arrange
         var maintenance = new ItemMaintenance 
         { 
-            Id = 1,
+            Id = "1",
             ItemId = 5001, 
             Type = ItemMaintenanceType.Repair, 
             Quantity = 1 
@@ -145,8 +145,8 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new[]
         {
-            new ItemMaintenance { Id = 1, ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
-            new ItemMaintenance { Id = 2, ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
+            new ItemMaintenance { Id = "1", ItemId = 6001, Type = ItemMaintenanceType.Repair, Quantity = 2 },
+            new ItemMaintenance { Id = "2", ItemId = 6002, Type = ItemMaintenanceType.Repair, Quantity = 3 }
         };
 
         // Act
@@ -162,8 +162,8 @@ public class CrudRepositoryTests
         // Arrange
         var maintenances = new[]
         {
-            new ItemMaintenance { Id = 1, ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
-            new ItemMaintenance { Id = 2, ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
+            new ItemMaintenance { Id = "1", ItemId = 7001, Type = ItemMaintenanceType.Repair, Quantity = 1 },
+            new ItemMaintenance { Id = "2", ItemId = 7002, Type = ItemMaintenanceType.Repair, Quantity = 1 }
         };
 
         // Act

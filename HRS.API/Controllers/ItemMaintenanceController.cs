@@ -27,32 +27,25 @@ public class ItemMaintenanceController : ControllerBase
         return Ok(ApiResponse<List<ItemMaintenanceResponseDto>>.OkResponse(result.ToList()));
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ItemMaintenanceResponseDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> GetById(string id)
     {
         var result = await _itemMaintenanceService.GetAsync(id);
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result));
     }
 
     [HttpPost]
-    public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] AddRequest request)
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] AddItemMaintenanceRequestDto request)
     {
-        var result = await _itemMaintenanceService.AddAsync(request.ItemId, request.Quantity, request.Remarks);
+        var result = await _itemMaintenanceService.AddAsync(request);
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Maintenance record added successfully"));
     }
 
-    [HttpPost("{id:int}/fix")]
-    public async Task<ActionResult<ItemMaintenanceResponseDto>> MarkAsFixed(int id, [FromBody] ItemMaintenanceRequestDto request)
+    [HttpPost("{id}/fix")]
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> MarkAsFixed(string id, [FromBody] ItemMaintenanceRequestDto request)
     {
         request.Id = id;
         var result = await _itemMaintenanceService.MarkAsFixedAsync(request);
-        return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Item maintenance marked as fixed successfully"));
+        return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Maintenance status updated successfully"));
     }
-}
-
-public class AddRequest
-{
-    public int ItemId { get; set; }
-    public int Quantity { get; set; }
-    public string? Remarks { get; set; }
 }

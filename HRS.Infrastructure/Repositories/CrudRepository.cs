@@ -43,10 +43,12 @@ public class CrudRepository<T> : ICrudRepository<T> where T : class
 
     public virtual void Update(T entity)
     {
+        throw new NotSupportedException("Update operation must be implemented in derived classes or use UpdateAsync method");
     }
 
     public virtual void Remove(T entity)
     {
+        throw new NotSupportedException("Remove operation must be implemented in derived classes or use RemoveAsync method");
     }
 
     public virtual void RemoveRange(IEnumerable<T> entities)

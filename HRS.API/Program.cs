@@ -7,6 +7,7 @@ using HRS.API.Services.Interfaces;
 using HRS.API.Validators.Maintenance;
 using HRS.Domain.Interfaces;
 using HRS.Infrastructure.Repositories;
+using HRS.Infrastructure.Mongo;
 using HRS.Shared.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +19,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 
-// 注册维护记录仓储，直接使用MongoDB实现
 builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
 
@@ -57,6 +57,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var mongoConnectionString = builder.Configuration["Mongo:ConnectionString"];
 var mongoDatabaseName = builder.Configuration["Mongo:Database"];
+
+// Register MongoDB ClassMaps
+ItemMaintenanceClassMap.Register();
+
 builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
 

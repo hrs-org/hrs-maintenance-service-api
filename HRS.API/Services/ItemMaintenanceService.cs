@@ -6,6 +6,7 @@ using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
 using HRS.Shared.Core.Interfaces;
 using HRS.Shared.Core.Dtos;
+using Stripe.Forwarding;
 
 namespace HRS.API.Services;
 
@@ -25,7 +26,7 @@ public class ItemMaintenanceService : IItemMaintenanceService
         _mapper = mapper;
     }
 
-    public async Task<ItemMaintenanceResponseDto> GetAsync(int id)
+    public async Task<ItemMaintenanceResponseDto> GetAsync(string id)
     {
         var record = await _itemMaintenanceRepository.GetByIdAsync(id)
                      ?? throw new KeyNotFoundException("Maintenance record not found.");
@@ -38,57 +39,52 @@ public class ItemMaintenanceService : IItemMaintenanceService
         return _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(records);
     }
 
-    public async Task<ItemMaintenanceResponseDto> AddAsync(int itemId, int quantity, string? remarks, int? rentalOrderId = null, ItemMaintenanceType? type = null, int? createdById = null, DateTime? createdAt = null, int? quantityFixed = null)
+    public async Task<ItemMaintenanceResponseDto> AddAsync(AddItemMaintenanceRequestDto request)
     {
-        // 如果没有提供用户信息，获取当前用户
-        if (createdById == null)
-        {
-            var user = await _userContextService.GetUserAsync();
-            createdById = user.Id;
-        }
+        var user = await _userContextService.GetUserAsync();
 
         var maintenance = new ItemMaintenance
         {
-            Id = itemId,
-            ItemId = itemId,
-            RentalOrderId = rentalOrderId ?? itemId, 
-            Type = type ?? ItemMaintenanceType.Repair, 
-            Quantity = quantity,
-            QuantityFixed = quantityFixed ?? quantity, 
-            CreatedById = createdById.Value,
-            CreatedAt = createdAt ?? DateTime.UtcNow, 
-            Remarks = remarks
+            ItemId = request.ItemId,
+            Type = ItemMaintenanceType.Repair,     
+            RentalOrderId = null,                  
+            Quantity = request.Quantity,
+            QuantityFixed = 0,
+            CreatedAt = DateTime.UtcNow,
+            CreatedById = user.Id,
+            Remarks = request.Remarks
         };
 
         await _itemMaintenanceRepository.AddAsync(maintenance);
-        await _itemMaintenanceRepository.SaveChangesAsync();
 
         return _mapper.Map<ItemMaintenanceResponseDto>(maintenance);
     }
 
     public async Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(ItemMaintenanceRequestDto request)
-{
-    var user = await _userContextService.GetUserAsync();
+    {
+        var user = await _userContextService.GetUserAsync();
 
-    var record = await _itemMaintenanceRepository.GetByIdAsync(request.Id)
-                 ?? throw new KeyNotFoundException("Maintenance record not found.");
+        var record = await _itemMaintenanceRepository.GetByIdAsync(request.Id)
+                     ?? throw new KeyNotFoundException("Maintenance record not found.");
 
-    if (record.Type != ItemMaintenanceType.Repair)
-        throw new InvalidOperationException("Only 'Repair' maintenance can be marked as fixed.");
+        if (record.Type != ItemMaintenanceType.Repair)
+            throw new InvalidOperationException("Only 'Repair' maintenance can be marked as fixed.");
 
-    if (request.QuantityFixed <= 0 || request.QuantityFixed > record.Quantity)
-        throw new ArgumentException("Invalid quantity to fix.");
+        if (request.QuantityFixed <= 0 || request.QuantityFixed > record.Quantity)
+            throw new ArgumentException("Invalid quantity to fix.");
 
-    // Mark as fixed
-    record.Type = ItemMaintenanceType.Fixed;
-    record.QuantityFixed = request.QuantityFixed;
-    record.Remarks = request.Remarks ?? $"Marked as fixed on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
-    record.UpdatedAt = DateTime.UtcNow;
-    record.UpdatedById = user.Id;
+        // Mark as fixed
+        record.QuantityFixed += request.QuantityFixed;
+        if (record.QuantityFixed == record.Quantity)
+        {
+            record.Type = ItemMaintenanceType.Fixed;
+        }
+        record.Remarks = request.Remarks ?? $"Marked as fixed on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
+        record.UpdatedAt = DateTime.UtcNow;
+        record.UpdatedById = user.Id;
 
-    _itemMaintenanceRepository.Update(record);
-    await _itemMaintenanceRepository.SaveChangesAsync();
+        _itemMaintenanceRepository.Update(record);
 
-    return _mapper.Map<ItemMaintenanceResponseDto>(record);
-}
+        return _mapper.Map<ItemMaintenanceResponseDto>(record);
+    }
 }

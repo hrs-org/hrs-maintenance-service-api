@@ -8,7 +8,7 @@ public class ItemMaintenanceRequestDtoValidator : AbstractValidator<ItemMaintena
     public ItemMaintenanceRequestDtoValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Id is required and must be greater than zero.");
+            .NotEmpty().WithMessage("Id is required.");
 
         RuleFor(x => x.QuantityFixed)
             .GreaterThan(0).WithMessage("QuantityFixed must be greater than zero.");
