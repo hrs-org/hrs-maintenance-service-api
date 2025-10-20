@@ -19,6 +19,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 
+builder.Services.AddHttpClient("InventoryService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["InventoryService"]!);
+});
+
 builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
 

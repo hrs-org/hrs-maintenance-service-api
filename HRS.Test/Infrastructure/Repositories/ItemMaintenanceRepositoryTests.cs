@@ -1,5 +1,4 @@
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
 using NSubstitute;
 using Xunit;

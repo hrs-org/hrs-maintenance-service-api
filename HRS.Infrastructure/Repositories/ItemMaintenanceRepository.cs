@@ -1,8 +1,8 @@
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using HRS.Shared.Core.Enums;
 
 namespace HRS.Infrastructure.Repositories;
 public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemMaintenanceRepository
