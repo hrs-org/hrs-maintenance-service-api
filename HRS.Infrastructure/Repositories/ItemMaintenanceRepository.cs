@@ -11,18 +11,6 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
     {
     }
 
-    public override void Update(ItemMaintenance entity)
-    {
-        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
-        _collection.ReplaceOne(filter, entity);
-    }
-
-    public override void Remove(ItemMaintenance entity)
-    {
-        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
-        _collection.DeleteOne(filter);
-    }
-
     public async Task<int> GetRepairingQuantityAsync(int itemId)
     {
         var pipeline = new[]

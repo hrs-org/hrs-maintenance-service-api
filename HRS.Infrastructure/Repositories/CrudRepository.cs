@@ -57,12 +57,36 @@ public class CrudRepository<T> : ICrudRepository<T> where T : class
 
     public virtual void Update(T entity)
     {
-        throw new NotSupportedException("Update operation must be implemented in derived classes or use UpdateAsync method");
+        ArgumentNullException.ThrowIfNull(entity);
+
+        // Try to get the Id property using reflection
+        var idProperty = typeof(T).GetProperty("Id");
+        if (idProperty == null)
+            throw new InvalidOperationException($"Entity type {typeof(T).Name} must have an 'Id' property");
+
+        var idValue = idProperty.GetValue(entity);
+        if (idValue == null)
+            throw new InvalidOperationException("Entity Id cannot be null");
+
+        var filter = Builders<T>.Filter.Eq("Id", idValue);
+        _collection.ReplaceOne(filter, entity);
     }
 
     public virtual void Remove(T entity)
     {
-        throw new NotSupportedException("Remove operation must be implemented in derived classes or use RemoveAsync method");
+        ArgumentNullException.ThrowIfNull(entity);
+
+        // Try to get the Id property using reflection
+        var idProperty = typeof(T).GetProperty("Id");
+        if (idProperty == null)
+            throw new InvalidOperationException($"Entity type {typeof(T).Name} must have an 'Id' property");
+
+        var idValue = idProperty.GetValue(entity);
+        if (idValue == null)
+            throw new InvalidOperationException("Entity Id cannot be null");
+
+        var filter = Builders<T>.Filter.Eq("Id", idValue);
+        _collection.DeleteOne(filter);
     }
 
     public virtual void RemoveRange(IEnumerable<T> entities)
