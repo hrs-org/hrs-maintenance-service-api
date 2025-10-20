@@ -66,6 +66,6 @@ public class CrudRepository<T> : ICrudRepository<T> where T : class
 
     public virtual Task<object> BeginTransactionAsync()
     {
-        return Task.FromResult<object>(null!);
+        throw new NotSupportedException("Transactions are not supported by this repository.");
     }
 }

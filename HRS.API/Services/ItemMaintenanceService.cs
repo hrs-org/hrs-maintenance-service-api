@@ -51,7 +51,6 @@ public class ItemMaintenanceService : IItemMaintenanceService
             Quantity = request.Quantity,
             QuantityFixed = 0,
             CreatedAt = DateTime.UtcNow,
-            CreatedById = user.Id,
             Remarks = request.Remarks
         };
 
