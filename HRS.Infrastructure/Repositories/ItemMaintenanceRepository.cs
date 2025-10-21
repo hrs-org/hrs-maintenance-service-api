@@ -40,8 +40,9 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
         return result?["total"]?.AsInt32 ?? 0;
     }
 
-    public async Task<IEnumerable<ItemMaintenance>> GetByItemIdAsync(string itemId)
+    public async Task<ItemMaintenance?> GetByItemIdAsync(string itemId)
     {
-        return await FindAsync(x => x.ItemId == itemId);
+        var items = await FindAsync(x => x.ItemId == itemId);
+        return items.FirstOrDefault();
     }
 }

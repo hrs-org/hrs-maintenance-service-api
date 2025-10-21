@@ -32,10 +32,10 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet("items/{itemId}")]
-    public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetByItemId(string itemId)
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> GetByItemId(string itemId)
     {
         var result = await _itemMaintenanceService.GetByItemIdAsync(itemId);
-        return Ok(ApiResponse<List<ItemMaintenanceResponseDto>>.OkResponse(result.ToList()));
+        return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result));
     }
 
     [HttpPost]

@@ -19,6 +19,7 @@ public class ItemMaintenanceServiceTests
     private readonly IMapper _mapper;
     private readonly IUserContextService _userContextService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly HttpClient _httpClient;
     private readonly ItemMaintenanceService _service;
 
@@ -29,6 +30,8 @@ public class ItemMaintenanceServiceTests
         _userContextService = Substitute.For<IUserContextService>();
         _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
         _httpClient = Substitute.For<HttpClient>();
+        _httpClientFactory = Substitute.For<IHttpClientFactory>();
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_httpClient);
 
         // Setup mock user - provide all required properties
         var mockUserResult = Task.FromResult(new UserResponseDto
@@ -42,7 +45,7 @@ public class ItemMaintenanceServiceTests
         _userContextService.GetUserAsync().Returns(mockUserResult);
         _userContextService.GetUserId().Returns(10);
 
-        _service = new ItemMaintenanceService(_itemMaintenanceRepository, _userContextService, _mapper, _httpClient);
+        _service = new ItemMaintenanceService(_itemMaintenanceRepository, _userContextService, _mapper, _httpClientFactory);
     }
 
     [Fact]
