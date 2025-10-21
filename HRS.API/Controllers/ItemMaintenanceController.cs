@@ -31,6 +31,13 @@ public class ItemMaintenanceController : ControllerBase
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result));
     }
 
+    [HttpGet("items/{itemId}")]
+    public async Task<ActionResult<ItemMaintenanceResponseDto>> GetByItemId(string itemId)
+    {
+        var result = await _itemMaintenanceService.GetByItemIdAsync(itemId);
+        return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result));
+    }
+
     [HttpPost]
     public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] CreateItemMaintenanceRequestDto request)
     {
@@ -44,5 +51,12 @@ public class ItemMaintenanceController : ControllerBase
         request.Id = id;
         var result = await _itemMaintenanceService.MarkAsFixedAsync(request);
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Maintenance status updated successfully"));
+    }
+
+    [HttpPost("batch")]
+    public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> AddBatch([FromBody] CreateItemMaintenanceBatchRequestDto request)
+    {
+        var result = await _itemMaintenanceService.AddBatchAsync(request);
+        return Ok(ApiResponse<IEnumerable<ItemMaintenanceResponseDto>>.OkResponse(result, "Maintenance records added successfully"));
     }
 }

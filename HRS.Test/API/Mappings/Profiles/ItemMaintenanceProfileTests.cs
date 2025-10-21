@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentAssertions;
 using HRS.API.Mappings.Profiles;
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Shared.Core.Dtos;
+using HRS.Shared.Core.Enums;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 

@@ -1,26 +1,14 @@
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using HRS.Shared.Core.Enums;
 
 namespace HRS.Infrastructure.Repositories;
 public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemMaintenanceRepository
 {
     public ItemMaintenanceRepository(IMongoDatabase database) : base(database, "ItemMaintenances")
     {
-    }
-
-    public override void Update(ItemMaintenance entity)
-    {
-        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
-        _collection.ReplaceOne(filter, entity);
-    }
-
-    public override void Remove(ItemMaintenance entity)
-    {
-        var filter = Builders<ItemMaintenance>.Filter.Eq("Id", entity.Id);
-        _collection.DeleteOne(filter);
     }
 
     public async Task<int> GetRepairingQuantityAsync(int itemId)
@@ -50,5 +38,11 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
 
         var result = await _collection.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();
         return result?["total"]?.AsInt32 ?? 0;
+    }
+
+    public async Task<ItemMaintenance?> GetByItemIdAsync(string itemId)
+    {
+        var items = await FindAsync(x => x.ItemId == itemId);
+        return items.FirstOrDefault();
     }
 }

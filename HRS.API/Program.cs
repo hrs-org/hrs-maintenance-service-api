@@ -4,6 +4,7 @@ using HRS.API.Filters;
 using HRS.API.Middleware;
 using HRS.API.Services;
 using HRS.API.Services.Interfaces;
+using HRS.API.Handlers;
 using HRS.API.Validators.Maintenance;
 using HRS.Domain.Interfaces;
 using HRS.Infrastructure.Repositories;
@@ -21,6 +22,16 @@ builder.Services.AddScoped<IUserContextService, UserContextService>();
 
 builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<AuthorizationHeaderHandler>();
+
+builder.Services.AddHttpClient("InventoryService", client =>
+{
+
+    client.BaseAddress = new Uri(builder.Configuration["InventoryService"]!);
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+.AddHttpMessageHandler<AuthorizationHeaderHandler>();
 
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 

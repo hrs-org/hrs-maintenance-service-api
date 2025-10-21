@@ -1,6 +1,6 @@
 using HRS.Domain.Entities;
-using HRS.Domain.Enums;
 using HRS.Domain.Interfaces;
+using HRS.Shared.Core.Enums;
 using MongoDB.Bson;
 using NSubstitute;
 using Xunit;
