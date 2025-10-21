@@ -2,10 +2,10 @@ using AutoMapper;
 using HRS.API.Services.Interfaces;
 using HRS.Domain.Entities;
 using HRS.Domain.Interfaces;
-using HRS.Shared.Core.Interfaces;
 using HRS.Shared.Core.Dtos;
-using Stripe.Forwarding;
 using HRS.Shared.Core.Enums;
+using HRS.Shared.Core.Interfaces;
+using System.Net.Http;
 
 namespace HRS.API.Services;
 
@@ -20,12 +20,12 @@ public class ItemMaintenanceService : IItemMaintenanceService
         IItemMaintenanceRepository itemMaintenanceRepository,
         IUserContextService userContextService,
         IMapper mapper
-, HttpClient httpClient)
+, IHttpClientFactory httpClientFactory)
     {
         _itemMaintenanceRepository = itemMaintenanceRepository;
         _userContextService = userContextService;
         _mapper = mapper;
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient("InventoryService");
     }
 
     public async Task<ItemMaintenanceResponseDto> GetAsync(string id)
@@ -120,13 +120,13 @@ public class ItemMaintenanceService : IItemMaintenanceService
         foreach (var e in request.Entries.Where(x => x.Type == ItemMaintenanceType.Broken || x.Type == ItemMaintenanceType.Lost))
         {
             var delta = -Math.Abs(e.Quantity);
-            var resp = await _httpClient.PutAsJsonAsync($"/api/item/{e.ItemId}/quantity?Delta={delta}", new { Delta = delta });
+            var resp = await _httpClient.PutAsJsonAsync($"/api/items/{e.ItemId}/quantity?quantity={delta}", new { Delta = delta });
             if (!resp.IsSuccessStatusCode)
             {
                 // compensation: revert applied adjustments and delete created records (best-effort)
                 foreach (var adj in adjustments)
                 {
-                    await _httpClient.PutAsJsonAsync($"/api/item/{adj.itemId}/quantity?Delta={-adj.delta}", new { Delta = -adj.delta });
+                    await _httpClient.PutAsJsonAsync($"/api/items/{adj.itemId}/quantity?Delta={-adj.delta}", new { Delta = -adj.delta });
                 }
                 foreach (var m in created) _itemMaintenanceRepository.Remove(m);
                 throw new InvalidOperationException("Failed to update item quantity during maintenance batch. Compensation attempted.");

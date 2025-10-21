@@ -20,22 +20,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IItemMaintenanceService, ItemMaintenanceService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 
-builder.Services.AddHttpClient("InventoryService", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["InventoryService"]!);
-});
-
 builder.Services.AddScoped<IItemMaintenanceRepository, ItemMaintenanceRepository>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<AuthorizationHeaderHandler>();
 
-builder.Services.AddHttpClient("RentalOrderService", client =>
+builder.Services.AddHttpClient("InventoryService", client =>
 {
-    var orderServiceUrl = builder.Configuration["RentalOrderService"]
-        ?? "http://hrs-order-service.orders.svc.cluster.local";
 
-    client.BaseAddress = new Uri(orderServiceUrl);
+    client.BaseAddress = new Uri(builder.Configuration["InventoryService"]!);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
 .AddHttpMessageHandler<AuthorizationHeaderHandler>();

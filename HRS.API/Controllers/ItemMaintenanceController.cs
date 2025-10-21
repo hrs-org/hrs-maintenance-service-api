@@ -45,6 +45,7 @@ public class ItemMaintenanceController : ControllerBase
         var result = await _itemMaintenanceService.MarkAsFixedAsync(request);
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result, "Maintenance status updated successfully"));
     }
+
     [HttpPost("batch")]
     public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> AddBatch([FromBody] CreateItemMaintenanceBatchRequestDto request)
     {
