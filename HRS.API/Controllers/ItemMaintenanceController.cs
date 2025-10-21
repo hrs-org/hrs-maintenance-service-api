@@ -31,6 +31,13 @@ public class ItemMaintenanceController : ControllerBase
         return Ok(ApiResponse<ItemMaintenanceResponseDto>.OkResponse(result));
     }
 
+    [HttpGet("items/{itemId}")]
+    public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetByItemId(string itemId)
+    {
+        var result = await _itemMaintenanceService.GetByItemIdAsync(itemId);
+        return Ok(ApiResponse<List<ItemMaintenanceResponseDto>>.OkResponse(result.ToList()));
+    }
+
     [HttpPost]
     public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] CreateItemMaintenanceRequestDto request)
     {

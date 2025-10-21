@@ -9,4 +9,5 @@ public interface IItemMaintenanceService
     Task<ItemMaintenanceResponseDto> AddAsync(CreateItemMaintenanceRequestDto request);
     Task<ItemMaintenanceResponseDto> MarkAsFixedAsync(FixItemMaintenanceRequestDto request);
     Task<IEnumerable<ItemMaintenanceResponseDto>> AddBatchAsync(CreateItemMaintenanceBatchRequestDto request);
+    Task<IEnumerable<ItemMaintenanceResponseDto>> GetByItemIdAsync(string itemId);
 }

@@ -39,4 +39,9 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
         var result = await _collection.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();
         return result?["total"]?.AsInt32 ?? 0;
     }
+
+    public async Task<IEnumerable<ItemMaintenance>> GetByItemIdAsync(string itemId)
+    {
+        return await FindAsync(x => x.ItemId == itemId);
+    }
 }
