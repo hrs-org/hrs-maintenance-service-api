@@ -9,10 +9,12 @@ public class ItemMaintenanceProfile : Profile
     public ItemMaintenanceProfile()
     {
         CreateMap<ItemMaintenance, ItemMaintenanceResponseDto>()
-            .ForMember(i => i.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(i => i.QuantityFixed, opt => opt.MapFrom(src => src.QuantityFixed))
-            .ForMember(i => i.Remarks, opt => opt.MapFrom(src => src.Remarks))
+            .ForMember(i => i.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(i => i.ItemId, opt => opt.MapFrom(src => src.ItemId))
             .ForMember(i => i.RentalOrderId, opt => opt.MapFrom(src => src.RentalOrderId))
-            .ForMember(i => i.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+            .ForMember(i => i.Type, opt => opt.MapFrom(src => nameof(src.Type)))
+            .ForMember(i => i.Quantity, opt => opt.MapFrom(src => src.Quantity))
+            .ForMember(i => i.QuantityFixed, opt => opt.MapFrom(src => src.QuantityFixed))
+            .ForMember(i => i.Remarks, opt => opt.MapFrom(src => src.Remarks));
     }
 }
