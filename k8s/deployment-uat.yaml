@@ -42,6 +42,9 @@ spec:
                       # CORS Configuration
                       - name: AllowedOrigins
                         value: "__ALLOWED_ORIGINS__"
+                      # Service URLs
+                      - name: InventoryService
+                        value: "__INVENTORY_SERVICE__"
                   resources:
                       requests:
                           memory: "128Mi"
