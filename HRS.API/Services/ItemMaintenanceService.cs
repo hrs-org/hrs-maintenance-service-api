@@ -93,7 +93,7 @@ public class ItemMaintenanceService : IItemMaintenanceService
         record.UpdatedAt = DateTime.UtcNow;
         record.UpdatedById = user.Id;
 
-        await _itemMaintenanceRepository.AddAsync(record);
+        _itemMaintenanceRepository.Update(record);
 
         return _mapper.Map<ItemMaintenanceResponseDto>(record);
     }

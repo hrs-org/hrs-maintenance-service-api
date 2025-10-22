@@ -153,7 +153,7 @@ public class ItemMaintenanceServiceTests
 
         record.Remarks.Should().Be("Fixed");
         record.UpdatedById.Should().Be(10);
-        await _itemMaintenanceRepository.Received(1).AddAsync(record);
+        _itemMaintenanceRepository.Received(1).Update(record);
         result.Should().BeEquivalentTo(dto);
     }
 
