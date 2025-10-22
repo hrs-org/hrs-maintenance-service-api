@@ -44,7 +44,7 @@ public class ItemMaintenanceProfileTests
         dto.Id.Should().Be(entity.Id.ToString());
         dto.ItemId.Should().Be("1");
         dto.RentalOrderId.Should().Be("1");
-        dto.Type.Should().Be(ItemMaintenanceType.Broken.ToString());
+        dto.Type.Should().Be(nameof(ItemMaintenanceType.Broken));
         dto.Quantity.Should().Be(5);
         dto.QuantityFixed.Should().Be(0);
         dto.Remarks.Should().Be("Broken zipper");
