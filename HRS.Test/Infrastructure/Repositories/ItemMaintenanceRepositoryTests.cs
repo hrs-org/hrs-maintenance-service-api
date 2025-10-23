@@ -18,7 +18,7 @@ public class ItemMaintenanceRepositoryTests
     public async Task GetRepairingQuantityAsync_ShouldReturn_CorrectSum()
     {
         // Arrange
-        var itemId = 1;
+        var itemId = "1";
         var expectedQuantity = 7;
 
         _repository.GetRepairingQuantityAsync(itemId)
@@ -36,7 +36,7 @@ public class ItemMaintenanceRepositoryTests
     public async Task GetRepairingQuantityAsync_ShouldReturn_Zero_WhenNoRecords()
     {
         // Arrange
-        var itemId = 99;
+        var itemId = "99";
 
         _repository.GetRepairingQuantityAsync(itemId)
             .Returns(Task.FromResult(0));

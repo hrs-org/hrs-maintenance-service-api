@@ -5,13 +5,14 @@ using MongoDB.Bson;
 using HRS.Shared.Core.Enums;
 
 namespace HRS.Infrastructure.Repositories;
+
 public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemMaintenanceRepository
 {
     public ItemMaintenanceRepository(IMongoDatabase database) : base(database, "ItemMaintenances")
     {
     }
 
-    public async Task<int> GetRepairingQuantityAsync(int itemId)
+    public async Task<int> GetRepairingQuantityAsync(string itemId)
     {
         var pipeline = new[]
         {
@@ -40,9 +41,9 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
         return result?["total"]?.AsInt32 ?? 0;
     }
 
-    public async Task<ItemMaintenance?> GetByItemIdAsync(string itemId)
+    public async Task<IEnumerable<ItemMaintenance>> GetByItemIdAsync(string itemId)
     {
         var items = await FindAsync(x => x.ItemId == itemId);
-        return items.FirstOrDefault();
+        return items;
     }
 }

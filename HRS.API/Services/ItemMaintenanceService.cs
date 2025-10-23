@@ -35,10 +35,15 @@ public class ItemMaintenanceService : IItemMaintenanceService
         return _mapper.Map<ItemMaintenanceResponseDto>(record);
     }
 
-    public async Task<ItemMaintenanceResponseDto?> GetByItemIdAsync(string itemId)
+    public async Task<IEnumerable<ItemMaintenanceResponseDto>> GetByItemIdAsync(string itemId)
     {
         var records = await _itemMaintenanceRepository.GetByItemIdAsync(itemId);
-        return _mapper.Map<ItemMaintenanceResponseDto>(records);
+        return _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(records);
+    }
+
+    public async Task<int> GetRepairingQuantityAsync(string itemId)
+    {
+        return await _itemMaintenanceRepository.GetRepairingQuantityAsync(itemId);
     }
 
     public async Task<IEnumerable<ItemMaintenanceResponseDto>> GetAllAsync()

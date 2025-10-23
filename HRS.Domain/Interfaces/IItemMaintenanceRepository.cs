@@ -4,7 +4,7 @@ namespace HRS.Domain.Interfaces;
 
 public interface IItemMaintenanceRepository : ICrudRepository<ItemMaintenance>
 {
-    Task<int> GetRepairingQuantityAsync(int itemId);
-    Task<ItemMaintenance?> GetByItemIdAsync(string itemId);
+    Task<int> GetRepairingQuantityAsync(string itemId);
+    Task<IEnumerable<ItemMaintenance>> GetByItemIdAsync(string itemId);
 }
 
