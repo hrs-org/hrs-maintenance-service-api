@@ -7,7 +7,7 @@ namespace HRS.API.Controllers;
 
 [ApiController]
 [Route("api/item-maintenances")]
-[Authorize(Roles = "Employee,Manager,Admin")]
+[Authorize]
 public class ItemMaintenanceController : ControllerBase
 {
     private readonly IItemMaintenanceService _itemMaintenanceService;
