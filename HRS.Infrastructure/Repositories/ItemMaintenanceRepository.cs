@@ -46,4 +46,10 @@ public class ItemMaintenanceRepository : CrudRepository<ItemMaintenance>, IItemM
         var items = await FindAsync(x => x.ItemId == itemId);
         return items;
     }
+
+    public async Task<IEnumerable<ItemMaintenance>> GetByStoreIdAsync(int storeId)
+    {
+        var items = await FindAsync(x => x.StoreId == storeId);
+        return items;
+    }
 }

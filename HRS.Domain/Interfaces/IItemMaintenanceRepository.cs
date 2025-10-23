@@ -6,5 +6,6 @@ public interface IItemMaintenanceRepository : ICrudRepository<ItemMaintenance>
 {
     Task<int> GetRepairingQuantityAsync(string itemId);
     Task<IEnumerable<ItemMaintenance>> GetByItemIdAsync(string itemId);
+    Task<IEnumerable<ItemMaintenance>> GetByStoreIdAsync(int storeId);
 }
 

@@ -11,4 +11,5 @@ public interface IItemMaintenanceService
     Task<IEnumerable<ItemMaintenanceResponseDto>> AddBatchAsync(CreateItemMaintenanceBatchRequestDto request);
     Task<IEnumerable<ItemMaintenanceResponseDto>> GetByItemIdAsync(string itemId);
     Task<int> GetRepairingQuantityAsync(string itemId);
+    Task<IEnumerable<ItemMaintenanceResponseDto>> GetByStoreIdAsync(int storeId);
 }

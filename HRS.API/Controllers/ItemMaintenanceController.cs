@@ -40,6 +40,13 @@ public class ItemMaintenanceController : ControllerBase
         return Ok(ApiResponse<IEnumerable<ItemMaintenanceResponseDto>>.OkResponse(result));
     }
 
+    [HttpGet("items")]
+    public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetByStoreId([FromQuery] int storeId)
+    {
+        var result = await _itemMaintenanceService.GetByStoreIdAsync(storeId);
+        return Ok(ApiResponse<IEnumerable<ItemMaintenanceResponseDto>>.OkResponse(result));
+    }
+
     [HttpGet("items/{itemId}/repair/quantity")]
     public async Task<ActionResult<int>> GetRepairByItemId(string itemId)
     {
