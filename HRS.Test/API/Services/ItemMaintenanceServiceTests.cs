@@ -241,4 +241,60 @@ public class ItemMaintenanceServiceTests
         _fakeHandler.SendAsyncFunc = (req, ct) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
         await Assert.ThrowsAsync<InvalidOperationException>(() => _svc.AddBatchAsync(batch));
     }
+
+    [Fact]
+    public async Task AddBatchAsync_EmptyEntries_ReturnsEmpty()
+    {
+        var batch = new CreateItemMaintenanceBatchRequestDto { Entries = new List<CreateItemMaintenanceRequestDto>() };
+        _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(Arg.Any<IEnumerable<ItemMaintenance>>()).Returns(new List<ItemMaintenanceResponseDto>());
+        var result = await _svc.AddBatchAsync(batch);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AddBatchAsync_LostType_AdjustQuantity()
+    {
+        var batch = new CreateItemMaintenanceBatchRequestDto
+        {
+            Entries = new List<CreateItemMaintenanceRequestDto>
+            {
+                new() { ItemId = "item3", Type = ItemMaintenanceType.Lost, RentalOrderId = "r3", Quantity = 2, Remarks = "lost" }
+            }
+        };
+        _mapper.Map<IEnumerable<ItemMaintenanceResponseDto>>(Arg.Any<IEnumerable<ItemMaintenance>>()).Returns(new List<ItemMaintenanceResponseDto> { new() { Id = "3" } });
+        _fakeHandler.SendAsyncFunc = (req, ct) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        var result = await _svc.AddBatchAsync(batch);
+        result.Should().NotBeNull();
+        result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task AddBatchAsync_MultipleBrokenLost_CompensationOnFail()
+    {
+        var batch = new CreateItemMaintenanceBatchRequestDto
+        {
+            Entries = new List<CreateItemMaintenanceRequestDto>
+            {
+                new() { ItemId = "item4", Type = ItemMaintenanceType.Broken, RentalOrderId = "r4", Quantity = 1, Remarks = "broken" },
+                new() { ItemId = "item5", Type = ItemMaintenanceType.Lost, RentalOrderId = "r5", Quantity = 1, Remarks = "lost" }
+            }
+        };
+        int callCount = 0;
+        _fakeHandler.SendAsyncFunc = (req, ct) =>
+        {
+            callCount++;
+            // 第一次成功，第二次失败
+            return Task.FromResult(new HttpResponseMessage(callCount == 1 ? HttpStatusCode.OK : HttpStatusCode.BadRequest));
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _svc.AddBatchAsync(batch));
+    }
+
+    [Fact]
+    public async Task MarkAsFixedAsync_AlreadyFixed_Throws()
+    {
+        var record = new ItemMaintenance { Id = ObjectId.GenerateNewId(), Type = ItemMaintenanceType.Fixed, Quantity = 5, QuantityFixed = 5, ItemId = "1", RentalOrderId = "1" };
+        var req = new FixItemMaintenanceRequestDto { Id = "1", QuantityFixed = 1 };
+        _repo.GetByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<ItemMaintenance?>(record));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _svc.MarkAsFixedAsync(req));
+    }
 }
