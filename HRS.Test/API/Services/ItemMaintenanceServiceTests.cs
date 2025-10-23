@@ -42,8 +42,8 @@ public class ItemMaintenanceServiceTests
         }));
         _userCtx.GetUserId().Returns(10);
         _userCtx.GetStoreId().Returns(1);
-    _mapper.Map<ItemMaintenanceResponseDto>(Arg.Any<ItemMaintenance>()).Returns(x => new ItemMaintenanceResponseDto { Id = "test", ItemId = (x.Arg<ItemMaintenance>()?.ItemId) ?? "", Quantity = (x.Arg<ItemMaintenance>()?.Quantity ?? 0) });
-    _svc = new ItemMaintenanceService(_repo, _userCtx, _mapper, _httpClientFactory);
+        _mapper.Map<ItemMaintenanceResponseDto>(Arg.Any<ItemMaintenance>()).Returns(x => new ItemMaintenanceResponseDto { Id = "test", ItemId = (x.Arg<ItemMaintenance>()?.ItemId) ?? "", Quantity = (x.Arg<ItemMaintenance>()?.Quantity ?? 0) });
+        _svc = new ItemMaintenanceService(_repo, _userCtx, _mapper, _httpClientFactory);
     }
 
     // 用于注入不同响应的自定义 handler
