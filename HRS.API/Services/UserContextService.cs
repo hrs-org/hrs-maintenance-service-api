@@ -23,7 +23,7 @@ public class UserContextService : IUserContextService
 
     public int GetStoreId()
     {
-        return int.Parse(_httpContextAccessor.HttpContext?.User?.FindFirst("email")?.Value ?? "0");
+        return int.Parse(_httpContextAccessor.HttpContext?.User?.FindFirst("storeId")?.Value ?? "0");
     }
 
     public string? GetEmail()
