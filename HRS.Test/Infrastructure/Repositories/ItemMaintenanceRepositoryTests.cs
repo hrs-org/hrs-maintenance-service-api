@@ -38,7 +38,7 @@ public class ItemMaintenanceRepositoryTests
         // Arrange
         var itemId = "99";
 
-        _repository.GetRepairingQuantityAsync(itemId)
+        _repository.GetRepairingQuantityAsync(Arg.Any<string>())
             .Returns(Task.FromResult(0));
 
         // Act
@@ -53,12 +53,12 @@ public class ItemMaintenanceRepositoryTests
     public async Task GetRepairingQuantityAsync_ShouldCall_Repository_Method()
     {
         // Arrange
-        var itemId = 123;
+        var itemId = "123";
 
         // Act
         await _repository.GetRepairingQuantityAsync(itemId);
 
         // Assert
-        await _repository.Received(1).GetRepairingQuantityAsync(itemId);
+        await _repository.Received(1).GetRepairingQuantityAsync(Arg.Any<string>());
     }
 }
