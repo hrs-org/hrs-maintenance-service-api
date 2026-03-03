@@ -98,7 +98,7 @@ jobs:
                   # Replace placeholders in the deployment file
                   sed "s|__ACR_NAME__|${{ secrets.ACR_NAME }}|g" k8s/deployment-uat.yaml | \
                   sed "s|__IMAGE_TAG__|${{ github.event.inputs.version }}|g" | \
-                  sed "s|__MONGODB_CONNECTION_STRING__|${{ secrets.MONGODB_CONNECTION_STRING || 'mongodb://admin:password@mongodb.maintenance.svc.cluster.local:27017' }}|g" | \
+                  sed "s|__MONGODB_CONNECTION_STRING__|${{ secrets.MONGODB_CONNECTION_STRING || 'mongodb://admin:password@mongodb-maintenance.uat.svc.cluster.local:27017' }}|g" | \
                   sed "s|__MONGODB_DATABASE_NAME__|${{ secrets.MONGODB_DATABASE_NAME || 'hrs_maintenance' }}|g" | \
                   sed "s|__JWT_ISSUER__|${{ secrets.JWT_ISSUER || 'HRSApp' }}|g" | \
                   sed "s|__JWT_AUDIENCE__|${{ secrets.JWT_AUDIENCE || 'HRSUsers' }}|g" | \
