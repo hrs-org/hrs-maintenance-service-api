@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Use the official .NET runtime as base image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
@@ -10,11 +11,11 @@ ARG GITHUB_TOKEN
 ARG USE_LOCAL_NUGET=false
 WORKDIR /app
 
-# Copy local NuGet packages if available (for local development)
-COPY [".nuget-local/", "./.nuget-local/"]
-
-# Configure local NuGet source first (for local development)
-RUN if [ -d ".nuget-local" ] && [ "$(ls -A .nuget-local)" ]; then \
+# Optionally use a local NuGet feed when explicitly enabled for local builds.
+RUN --mount=type=bind,source=.,target=/context,readonly \
+    if [ "$USE_LOCAL_NUGET" = "true" ] && [ -d "/context/.nuget-local" ] && \
+    [ "$(ls -A /context/.nuget-local 2>/dev/null)" ]; then \
+    cp -a /context/.nuget-local /app/.nuget-local && \
     dotnet nuget add source /app/.nuget-local --name local; \
     fi
 
