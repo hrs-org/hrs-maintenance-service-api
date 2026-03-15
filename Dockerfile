@@ -19,9 +19,15 @@ RUN --mount=type=bind,source=.,target=/context,readonly \
     dotnet nuget add source /app/.nuget-local --name local; \
     fi
 
-# Configure GitHub Packages authentication if token is provided
-RUN if [ ! -z "$GITHUB_TOKEN" ]; then \
-    dotnet nuget add source --username docker --password $GITHUB_TOKEN \
+# Configure GitHub Packages authentication for private NuGet packages.
+# In CI, the token is provided as a BuildKit secret (github_packages_token).
+# For local builds, GITHUB_TOKEN build arg remains a fallback.
+RUN --mount=type=secret,id=github_packages_token,required=false \
+    TOKEN="$(cat /run/secrets/github_packages_token 2>/dev/null || true)"; \
+    if [ -z "$TOKEN" ]; then TOKEN="$GITHUB_TOKEN"; fi; \
+    if [ ! -z "$TOKEN" ]; then \
+    dotnet nuget remove source github 2>/dev/null || true; \
+    dotnet nuget add source --username docker --password "$TOKEN" \
     --store-password-in-clear-text \
     --name github "https://nuget.pkg.github.com/hrs-org/index.json"; \
     fi
