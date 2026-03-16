@@ -3,6 +3,7 @@
 # dependenct
 .idea
 .idea/
+.vscode/
 
 ###################
 # compiled source #
@@ -85,3 +86,8 @@ _[Ss]cripts
 *.nupkg
 *.ncrunchsolution
 *.dot[Cc]over
+######################
+# Uneeded Files #
+######################
+*.Local.*
+*.sh
