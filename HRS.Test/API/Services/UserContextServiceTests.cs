@@ -150,8 +150,8 @@ public class UserContextServiceTests
         [
             new Claim("sub", "7"),
             new Claim("email", "john@example.com"),
-            new Claim("given_name", "John"),
-            new Claim("family_name", "Doe"),
+            new Claim(ClaimTypes.GivenName, "John"),
+            new Claim(ClaimTypes.Surname, "Doe"),
             new Claim("role", "Admin")
         ]));
 
@@ -171,7 +171,7 @@ public class UserContextServiceTests
         [
             new Claim("sub", "1"),
             new Claim("email", "a@b.com"),
-            new Claim("family_name", "Smith"),
+            new Claim(ClaimTypes.Surname, "Smith"),
             new Claim("role", "Employee")
         ]));
 
@@ -187,7 +187,7 @@ public class UserContextServiceTests
         [
             new Claim("sub", "1"),
             new Claim("email", "a@b.com"),
-            new Claim("given_name", "Jane"),
+            new Claim(ClaimTypes.GivenName, "Jane"),
             new Claim("role", "Employee")
         ]));
 
@@ -202,8 +202,8 @@ public class UserContextServiceTests
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
             new Claim("sub", "1"),
-            new Claim("given_name", "Jane"),
-            new Claim("family_name", "Doe"),
+            new Claim(ClaimTypes.GivenName, "Jane"),
+            new Claim(ClaimTypes.Surname, "Doe"),
             new Claim("role", "Employee")
         ]));
 
@@ -219,8 +219,8 @@ public class UserContextServiceTests
         [
             new Claim("sub", "3"),
             new Claim(ClaimTypes.Role, "Manager"),
-            new Claim("given_name", "Sam"),
-            new Claim("family_name", "Lee")
+            new Claim(ClaimTypes.GivenName, "Sam"),
+            new Claim(ClaimTypes.Surname, "Lee")
         ]));
 
         var result = await _svc.GetUserAsync();
@@ -234,8 +234,8 @@ public class UserContextServiceTests
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
             new Claim("sub", "3"),
-            new Claim("given_name", "Sam"),
-            new Claim("family_name", "Lee")
+            new Claim(ClaimTypes.GivenName, "Sam"),
+            new Claim(ClaimTypes.Surname, "Lee")
         ]));
 
         var result = await _svc.GetUserAsync();
