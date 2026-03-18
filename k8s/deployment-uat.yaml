@@ -15,6 +15,7 @@ spec:
             labels:
                 app: hrs-maintenance-service
         spec:
+            serviceAccountName: hrs-maintenance-service-sa
             # SNYK-CC-K8S-6: Add security context at pod level
             securityContext:
                 runAsNonRoot: true
