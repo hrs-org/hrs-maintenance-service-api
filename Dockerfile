@@ -6,7 +6,6 @@ EXPOSE 80
 # Use Alpine SDK for build
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
-ARG GITHUB_TOKEN
 ARG USE_LOCAL_NUGET=false
 WORKDIR /app
 
