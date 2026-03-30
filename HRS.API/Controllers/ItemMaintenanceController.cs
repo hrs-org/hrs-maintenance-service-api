@@ -7,7 +7,6 @@ namespace HRS.API.Controllers;
 
 [ApiController]
 [Route("api/item-maintenances")]
-[Authorize]
 public class ItemMaintenanceController : ControllerBase
 {
     private readonly IItemMaintenanceService _itemMaintenanceService;
@@ -18,7 +17,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = "read:maintenance")]
     public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetAll()
     {
         var result = await _itemMaintenanceService.GetAllAsync();
@@ -26,7 +25,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Employee,Manager,Admin")]
+    [Authorize(Policy = "read:maintenance")]
     public async Task<ActionResult<ItemMaintenanceResponseDto>> GetById(string id)
     {
         var result = await _itemMaintenanceService.GetAsync(id);
@@ -34,6 +33,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet("items/{itemId}")]
+    [Authorize(Policy = "read:maintenance")]
     public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetByItemId(string itemId)
     {
         var result = await _itemMaintenanceService.GetByItemIdAsync(itemId);
@@ -41,6 +41,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet("items")]
+    [Authorize(Policy = "read:maintenance")]
     public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> GetByStoreId([FromQuery] int storeId)
     {
         var result = await _itemMaintenanceService.GetByStoreIdAsync(storeId);
@@ -48,6 +49,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpGet("items/{itemId}/repair/quantity")]
+    [Authorize(Policy = "read:maintenance")]
     public async Task<ActionResult<int>> GetRepairByItemId(string itemId)
     {
         var result = await _itemMaintenanceService.GetRepairingQuantityAsync(itemId);
@@ -55,7 +57,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Employee,Manager,Admin")]
+    [Authorize(Policy = "write:maintenance")]
     public async Task<ActionResult<ItemMaintenanceResponseDto>> Add([FromBody] CreateItemMaintenanceRequestDto request)
     {
         var result = await _itemMaintenanceService.AddAsync(request);
@@ -63,7 +65,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpPost("{id}/fix")]
-    [Authorize(Roles = "Employee,Manager,Admin")]
+    [Authorize(Policy = "update:maintenance")]
     public async Task<ActionResult<ItemMaintenanceResponseDto>> MarkAsFixed(string id, [FromBody] FixItemMaintenanceRequestDto request)
     {
         request.Id = id;
@@ -72,7 +74,7 @@ public class ItemMaintenanceController : ControllerBase
     }
 
     [HttpPost("batch")]
-    [Authorize(Roles = "Employee,Manager,Admin")]
+    [Authorize(Policy = "write:maintenance")]
     public async Task<ActionResult<IEnumerable<ItemMaintenanceResponseDto>>> AddBatch([FromBody] CreateItemMaintenanceBatchRequestDto request)
     {
         var result = await _itemMaintenanceService.AddBatchAsync(request);
