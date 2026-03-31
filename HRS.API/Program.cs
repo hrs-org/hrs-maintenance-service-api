@@ -1,4 +1,4 @@
-using System.Text;
+using System.Security.Claims;
 using FluentValidation;
 using HRS.API.Filters;
 using HRS.API.Middleware;
@@ -9,8 +9,11 @@ using HRS.API.Validators.Maintenance;
 using HRS.Domain.Interfaces;
 using HRS.Infrastructure.Repositories;
 using HRS.Infrastructure.Mongo;
+using HRS.Shared.Core.Authorization;
 using HRS.Shared.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -77,22 +80,79 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDataba
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
+var auth0Domain = builder.Configuration["Auth0:Domain"]!;
+var auth0Audience = builder.Configuration["Auth0:Audience"]!;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = $"https://{auth0Domain}/";
+        options.Audience = auth0Audience;
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            )
+            ValidIssuer = $"https://{auth0Domain}/",
+            ValidAudience = auth0Audience,
+            NameClaimType = "sub"
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var claims = context.Principal?.Claims.ToList() ?? new List<Claim>();
+                var subClaim = claims.FirstOrDefault(c => c.Type == "sub");
+                var claimsIdentity = (ClaimsIdentity)context.Principal?.Identity!;
+
+                if (subClaim != null && !claims.Any(c => c.Type == ClaimTypes.NameIdentifier))
+                {
+                    claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, subClaim.Value));
+                }
+
+                if (!claims.Any(c => c.Type == "userId"))
+                {
+                    var userIdClaim = claims.FirstOrDefault(c =>
+                        c.Type == "https://hrs-api/userId" || c.Type == "https://hrs-api/user_id");
+
+                    if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+                    {
+                        claimsIdentity.AddClaim(new Claim("userId", userId.ToString()));
+                    }
+                }
+
+                if (!claims.Any(c => c.Type == "storeId"))
+                {
+                    var storeIdClaim = claims.FirstOrDefault(c =>
+                        c.Type == "https://hrs-api/storeId" || c.Type == "https://hrs-api/store_id");
+
+                    if (storeIdClaim != null && int.TryParse(storeIdClaim.Value, out var storeId))
+                    {
+                        claimsIdentity.AddClaim(new Claim("storeId", storeId.ToString()));
+                    }
+                }
+
+                await Task.CompletedTask;
+            }
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    // Maintenance service scopes
+    options.AddPolicy("read:maintenance", policy =>
+        policy.Requirements.Add(new PermissionRequirement("read:maintenance")));
+    options.AddPolicy("write:maintenance", policy =>
+        policy.Requirements.Add(new PermissionRequirement("write:maintenance")));
+    options.AddPolicy("update:maintenance", policy =>
+        policy.Requirements.Add(new PermissionRequirement("update:maintenance")));
+    options.AddPolicy("delete:maintenance", policy =>
+        policy.Requirements.Add(new PermissionRequirement("delete:maintenance")));
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
 builder.Services.AddCors(options =>
 {
