@@ -29,29 +29,29 @@ public class UserContextServiceTests
     // ──────────────────────────── GetUserId ────────────────────────────
 
     [Fact]
-    public void GetUserId_FromSubClaim_ReturnsUserId()
+    public void GetUserId_FromUserIdClaim_ReturnsUserId()
     {
-        _httpContextAccessor.HttpContext.Returns(BuildContext([new Claim("sub", "42")]));
+        _httpContextAccessor.HttpContext.Returns(BuildContext([new Claim("userId", "42")]));
         _svc.GetUserId().Should().Be(42);
     }
 
     [Fact]
-    public void GetUserId_FromNameIdentifierClaim_ReturnsUserId()
+    public void GetUserId_FromNameIdentifierClaim_ReturnsZero()
     {
         _httpContextAccessor.HttpContext.Returns(
             BuildContext([new Claim(ClaimTypes.NameIdentifier, "99")]));
-        _svc.GetUserId().Should().Be(99);
+        _svc.GetUserId().Should().Be(0);
     }
 
     [Fact]
-    public void GetUserId_SubClaimTakesPriorityOverNameIdentifier()
+    public void GetUserId_WithSubAndNameIdentifierClaims_ReturnsZero()
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
             new Claim("sub", "10"),
             new Claim(ClaimTypes.NameIdentifier, "20")
         ]));
-        _svc.GetUserId().Should().Be(10);
+        _svc.GetUserId().Should().Be(0);
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class UserContextServiceTests
     }
 
     [Fact]
-    public void GetUserId_NonNumericSubClaim_ReturnsZero()
+    public void GetUserId_NonNumericUserIdClaim_ReturnsZero()
     {
-        _httpContextAccessor.HttpContext.Returns(BuildContext([new Claim("sub", "not-a-number")]));
+        _httpContextAccessor.HttpContext.Returns(BuildContext([new Claim("userId", "not-a-number")]));
         _svc.GetUserId().Should().Be(0);
     }
 
@@ -148,7 +148,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "7"),
+            new Claim("userId", "7"),
             new Claim("email", "john@example.com"),
             new Claim(ClaimTypes.GivenName, "John"),
             new Claim(ClaimTypes.Surname, "Doe"),
@@ -169,7 +169,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "1"),
+            new Claim("userId", "1"),
             new Claim("email", "a@b.com"),
             new Claim(ClaimTypes.Surname, "Smith"),
             new Claim("role", "Employee")
@@ -185,7 +185,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "1"),
+            new Claim("userId", "1"),
             new Claim("email", "a@b.com"),
             new Claim(ClaimTypes.GivenName, "Jane"),
             new Claim("role", "Employee")
@@ -201,7 +201,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "1"),
+            new Claim("userId", "1"),
             new Claim(ClaimTypes.GivenName, "Jane"),
             new Claim(ClaimTypes.Surname, "Doe"),
             new Claim("role", "Employee")
@@ -217,7 +217,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "3"),
+            new Claim("userId", "3"),
             new Claim(ClaimTypes.Role, "Manager"),
             new Claim(ClaimTypes.GivenName, "Sam"),
             new Claim(ClaimTypes.Surname, "Lee")
@@ -233,7 +233,7 @@ public class UserContextServiceTests
     {
         _httpContextAccessor.HttpContext.Returns(BuildContext(
         [
-            new Claim("sub", "3"),
+            new Claim("userId", "3"),
             new Claim(ClaimTypes.GivenName, "Sam"),
             new Claim(ClaimTypes.Surname, "Lee")
         ]));

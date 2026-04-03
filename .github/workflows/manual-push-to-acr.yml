@@ -327,7 +327,8 @@ jobs:
                   ACR_NAME: ${{ secrets.ACR_NAME }}
                   MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
                   MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME || 'hrs_maintenance' }}
-                  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+                  AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+                  AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
                   ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS || 'http://localhost:4200' }}
                   INVENTORY_SERVICE: ${{ secrets.INVENTORY_SERVICE || 'http://localhost:5002' }}
               run: |
@@ -348,9 +349,8 @@ jobs:
                     -e ASPNETCORE_ENVIRONMENT=Production \
                     -e Mongo__ConnectionString="$MONGODB_CONNECTION_STRING" \
                     -e Mongo__Database="$MONGODB_DATABASE_NAME" \
-                    -e Jwt__Key="$JWT_SECRET_KEY" \
-                    -e Jwt__Issuer="HRSApp" \
-                    -e Jwt__Audience="HRSUsers" \
+                    -e Auth0__Domain="$AUTH0_DOMAIN" \
+                    -e Auth0__Audience="$AUTH0_AUDIENCE" \
                     -e AllowedOrigins="$ALLOWED_ORIGINS" \
                     -e InventoryService="$INVENTORY_SERVICE" \
                     "${ACR_NAME}.azurecr.io/hrs-maintenance-service:${IMAGE_TAG}"

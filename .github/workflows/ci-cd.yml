@@ -517,7 +517,9 @@ jobs:
               env:
                   IMAGE_TAG: ${{ needs.docker-build.outputs.image-tag }}
                   MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-                  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+                  MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME || 'hrs_maintenance' }}
+                  AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+                  AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
                   ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS || 'http://localhost:4200' }}
               run: |
                   az acr login --name ${{ secrets.ACR_NAME }}
@@ -536,10 +538,10 @@ jobs:
                   echo "Starting container..."
                   docker run -d -p 5000:8080 --name hrs-maintenance-service \
                     -e ASPNETCORE_ENVIRONMENT=Production \
-                    -e ConnectionStrings__MongoDb="$MONGODB_CONNECTION_STRING" \
-                    -e Jwt__Key="$JWT_SECRET_KEY" \
-                    -e Jwt__Issuer="HRSApp" \
-                    -e Jwt__Audience="HRSUsers" \
+                    -e Mongo__ConnectionString="$MONGODB_CONNECTION_STRING" \
+                    -e Mongo__Database="$MONGODB_DATABASE_NAME" \
+                    -e Auth0__Domain="$AUTH0_DOMAIN" \
+                    -e Auth0__Audience="$AUTH0_AUDIENCE" \
                     -e AllowedOrigins="$ALLOWED_ORIGINS" \
                     ${{ secrets.ACR_NAME }}.azurecr.io/hrs-maintenance-service:${IMAGE_TAG}
 
