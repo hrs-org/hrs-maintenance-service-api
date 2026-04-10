@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: hrs-maintenance-service-sa
-    namespace: __NAMESPACE__
+    namespace: uat
     labels:
         app: hrs-maintenance-service
         environment: uat
