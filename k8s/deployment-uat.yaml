@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: hrs-maintenance-service-sa
+    namespace: __NAMESPACE__
+    labels:
+        app: hrs-maintenance-service
+        environment: uat
+
+automountServiceAccountToken: false
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
