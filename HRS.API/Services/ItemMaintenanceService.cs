@@ -112,6 +112,7 @@ public class ItemMaintenanceService : IItemMaintenanceService
     public async Task<IEnumerable<ItemMaintenanceResponseDto>> AddBatchAsync(CreateItemMaintenanceBatchRequestDto request)
     {
         var user = await _userContextService.GetUserAsync();
+        var storeId = _userContextService.GetStoreId();
         var created = new List<ItemMaintenance>();
         var adjustments = new List<(string itemId, int delta)>();
 
@@ -127,7 +128,8 @@ public class ItemMaintenanceService : IItemMaintenanceService
                 QuantityFixed = 0,
                 CreatedAt = DateTime.UtcNow,
                 CreatedById = user.Id,
-                Remarks = e.Remarks
+                Remarks = e.Remarks,
+                StoreId = storeId
             };
             await _itemMaintenanceRepository.AddAsync(m);
             created.Add(m);
